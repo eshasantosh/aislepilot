@@ -57,7 +57,7 @@ export default function MapPage() {
     }));
   };
 
-  if (isLoading) {
+  if (isLoading && !categorizedList) { // Show loader only if data isn't ready yet
     return (
       <>
         <AppHeader />
@@ -77,10 +77,10 @@ export default function MapPage() {
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
         <div className="mb-6">
-          <Link href="/" passHref>
+          <Link href="/plan" passHref>
             <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to List Input
+              Back to Grocery Plan
             </Button>
           </Link>
         </div>

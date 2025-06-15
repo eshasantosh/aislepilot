@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -16,9 +17,9 @@ const grocerySchema = z.object({
 type GroceryFormValues = z.infer<typeof grocerySchema>;
 
 interface GroceryFormProps {
-  onSubmitItems: (items: string) => Promise<void>;
+  onSubmitItems: (items: string) => Promise<void> | void; // Can be async or sync
   onClearList: () => void;
-  isLoading: boolean;
+  isLoading: boolean; // This might be for UI feedback on the form itself, not AI loading
   initialItems: string;
 }
 
@@ -30,20 +31,21 @@ export function GroceryForm({ onSubmitItems, onClearList, isLoading, initialItem
     },
   });
 
+  // Update form if initialItems prop changes (e.g. loaded from localStorage or cleared)
+  React.useEffect(() => {
+    if (form.getValues("items") !== initialItems) {
+      form.setValue("items", initialItems);
+    }
+  }, [initialItems, form]);
+
   const handleSubmit: SubmitHandler<GroceryFormValues> = async (data) => {
     await onSubmitItems(data.items);
   };
   
   const handleClear = () => {
-    form.reset({ items: "" });
-    onClearList();
+    form.reset({ items: "" }); // Reset form state
+    onClearList(); // Call parent handler to clear localStorage and other state
   };
-
-  // Update form if initialItems prop changes (e.g. cleared from parent)
-  React.useEffect(() => {
-    form.setValue("items", initialItems);
-  }, [initialItems, form]);
-
 
   return (
     <Form {...form}>
@@ -64,7 +66,7 @@ export function GroceryForm({ onSubmitItems, onClearList, isLoading, initialItem
                 />
               </FormControl>
               <p id="items-description" className="text-sm text-muted-foreground">
-                Enter items separated by commas. Our AI will sort them into aisles for you!
+                Enter items separated by commas. We'll sort them into aisles for you on the next page!
               </p>
               <FormMessage />
             </FormItem>
