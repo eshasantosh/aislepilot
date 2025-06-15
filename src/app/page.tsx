@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -60,7 +61,7 @@ export default function Home() {
     try {
       const inputForAI: CategorizeItemsInput = { items };
       const result = await categorizeItems(inputForAI);
-      if (result && result.aisleMap && Object.keys(result.aisleMap).length === 0 && items.trim() !== "") {
+      if (result && result.categorizedAisles && result.categorizedAisles.length === 0 && items.trim() !== "") {
         toast({
           title: "No Categories Found",
           description: "The AI couldn't categorize the items. Try rephrasing or adding more specific items.",
@@ -114,7 +115,7 @@ export default function Home() {
           />
         </div>
         
-        { (categorizedList && categorizedList.aisleMap && Object.keys(categorizedList.aisleMap).length > 0 ) || itemsInput.trim() === "" ? (
+        { (categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 ) || itemsInput.trim() === "" ? (
             <Separator className="my-12" />
           ) : null
         }
