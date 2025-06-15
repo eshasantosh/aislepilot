@@ -66,8 +66,8 @@ export function CategorizedDisplay({
           </CarouselContent>
           {sortedAisles.length > 1 && (
             <>
-              <CarouselPrevious className="hidden sm:flex" />
-              <CarouselNext className="hidden sm:flex" />
+              <CarouselPrevious />
+              <CarouselNext />
             </>
           )}
         </Carousel>
@@ -87,3 +87,4 @@ export function CategorizedDisplay({
     </div>
   );
 }
+
