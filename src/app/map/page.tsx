@@ -8,9 +8,17 @@ import { AppHeader } from '@/components/app-header';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, ScanLine } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function MapPage() {
   const [categorizedList, setCategorizedList] = useState<CategorizeItemsOutput | null>(null);
@@ -122,6 +130,33 @@ export default function MapPage() {
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
+          
+          <div className="mt-6 text-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+                  <ScanLine className="mr-2 h-5 w-5" />
+                  Scan Barcode
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Barcode Scanner</DialogTitle>
+                  <DialogDescription>
+                    Point your camera at a barcode to scan it.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 text-center">
+                  <p className="text-muted-foreground">
+                    (Barcode scanning functionality coming soon!)
+                  </p>
+                  <div className="mt-4 flex justify-center">
+                    <ScanLine className="h-24 w-24 text-primary/50" />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </section>
 
       </main>
@@ -131,4 +166,3 @@ export default function MapPage() {
     </>
   );
 }
-
