@@ -43,22 +43,22 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 20%; /* Dark Grey #333333 (as requested) */
+    --background: 0 0% 15%; /* Darker Grey (e.g. #262626) */
     --foreground: 0 0% 98%; /* Light text on dark bg */
 
-    --card: 0 0% 17%; /* Slightly different from bg for depth */
+    --card: 0 0% 12%; /* Slightly different from bg for depth */
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 17%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 33 100% 64%; /* Orange #FFB347 */
     --primary-foreground: 0 0% 10%; /* Dark text for contrast on orange */
 
-    --secondary: 0 0% 25%; /* A secondary dark shade */
+    --secondary: 0 0% 20%; /* A secondary dark shade, slightly lighter than new bg */
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 25%;
+    --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%; /* Lighter muted text */
 
     --accent: 127 37% 74%; /* Soft Green #A7D1AB */
@@ -67,8 +67,8 @@ body {
     --destructive: 0 72.2% 50.6%; /* Adjusted destructive for dark theme */
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 27%; /* Darker border */
-    --input: 0 0% 27%; /* Darker input background */
+    --border: 0 0% 22%; /* Darker border to match new bg */
+    --input: 0 0% 22%; /* Darker input background to match new bg */
     --ring: 33 100% 64%; /* Orange for rings (matches new primary) */
     
     --chart-1: 220 70% 50%;
