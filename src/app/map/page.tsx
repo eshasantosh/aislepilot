@@ -22,31 +22,47 @@ export default function MapPage() {
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
+    let listFromStorage: CategorizeItemsOutput | null = null;
+    let checksFromStorage: Record<string, boolean> = {};
 
-    const savedCategorizedList = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-    if (savedCategorizedList) {
-      try {
-        setCategorizedList(JSON.parse(savedCategorizedList));
-      } catch (e) {
-        console.error("Error parsing categorized list from localStorage on map page", e);
-        // Optionally inform user: toast({ variant: "destructive", title: "Error loading list" });
+    try {
+      const savedCategorizedList = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
+      if (savedCategorizedList) {
+        try {
+          listFromStorage = JSON.parse(savedCategorizedList);
+        } catch (parseError) {
+          console.error("Error parsing categorized list from localStorage on map page", parseError);
+          // Optionally clear corrupted data: localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
+        }
       }
-    }
-    
-    const savedCheckedItems = localStorage.getItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
-    if (savedCheckedItems) {
-      try {
-        setCheckedItems(JSON.parse(savedCheckedItems));
-      } catch (e) {
-        console.error("Error parsing checked items from localStorage on map page", e);
+
+      const savedCheckedItems = localStorage.getItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+      if (savedCheckedItems) {
+        try {
+          checksFromStorage = JSON.parse(savedCheckedItems);
+        } catch (parseError) {
+          console.error("Error parsing checked items from localStorage on map page", parseError);
+          // Optionally clear corrupted data: localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+        }
       }
+    } catch (storageAccessError) {
+      console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
+      // toast({ variant: "destructive", title: "Storage Error", description: "Could not access your grocery list data. Please ensure localStorage is enabled." });
     }
-    setIsLoading(false);
+
+    setCategorizedList(listFromStorage);
+    setCheckedItems(checksFromStorage);
+    setIsLoading(false); // Crucial: ensure loading state is always resolved
   }, []);
 
   useEffect(() => {
     if (!isLoading) { // Avoid writing to localStorage on initial mount if still loading
-      localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
+      } catch (storageAccessError) {
+        console.error("Error accessing localStorage on map page (write operation):", storageAccessError);
+        // toast({ variant: "destructive", title: "Storage Error", description: "Could not save checklist changes. Please ensure localStorage is enabled." });
+      }
     }
   }, [checkedItems, isLoading]);
 
@@ -57,7 +73,7 @@ export default function MapPage() {
     }));
   };
 
-  if (isLoading && !categorizedList) { // Show loader only if data isn't ready yet
+  if (isLoading && !categorizedList) { // Show loader only if data isn't ready yet (or if initial load is still happening)
     return (
       <>
         <AppHeader />
@@ -98,7 +114,7 @@ export default function MapPage() {
               height={600}
               className="w-full h-auto object-contain"
               data-ai-hint="store layout supermarket plan"
-              priority 
+              priority
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
