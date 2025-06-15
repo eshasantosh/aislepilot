@@ -131,6 +131,17 @@ export default function Home() {
           />
         </div>
         
+        { (categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 ) || (itemsInput.trim() === "" && (!categorizedList || categorizedList.categorizedAisles.length === 0)) ? (
+            <Separator className="my-12" />
+          ) : null
+        }
+
+        <CategorizedDisplay
+          categorizedList={categorizedList}
+          checkedItems={checkedItems}
+          onItemToggle={handleItemToggle}
+        />
+
         {categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 && (
           <div className="mt-8 text-center">
             <Link href="/map" passHref>
@@ -141,17 +152,6 @@ export default function Home() {
             </Link>
           </div>
         )}
-
-        { (categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 ) || itemsInput.trim() === "" ? (
-            <Separator className="my-12" />
-          ) : null
-        }
-
-        <CategorizedDisplay
-          categorizedList={categorizedList}
-          checkedItems={checkedItems}
-          onItemToggle={handleItemToggle}
-        />
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>&copy; {currentYear || ''} AisleAssist. Happy Shopping!</p>
