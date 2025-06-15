@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppHeader } from '@/components/app-header';
 import { GroceryForm } from '@/components/grocery-form';
 import { CategorizedDisplay } from '@/components/categorized-display';
@@ -60,7 +60,7 @@ export default function Home() {
     try {
       const inputForAI: CategorizeItemsInput = { items };
       const result = await categorizeItems(inputForAI);
-      if (Object.keys(result).length === 0 && items.trim() !== "") {
+      if (result && result.aisleMap && Object.keys(result.aisleMap).length === 0 && items.trim() !== "") {
         toast({
           title: "No Categories Found",
           description: "The AI couldn't categorize the items. Try rephrasing or adding more specific items.",
@@ -114,7 +114,7 @@ export default function Home() {
           />
         </div>
         
-        { (categorizedList && Object.keys(categorizedList).length > 0 ) || itemsInput.trim() === "" ? (
+        { (categorizedList && categorizedList.aisleMap && Object.keys(categorizedList.aisleMap).length > 0 ) || itemsInput.trim() === "" ? (
             <Separator className="my-12" />
           ) : null
         }
