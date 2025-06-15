@@ -12,7 +12,7 @@ interface CategorizedDisplayProps {
 }
 
 export function CategorizedDisplay({ categorizedList, checkedItems, onItemToggle }: CategorizedDisplayProps) {
-  if (!categorizedList || Object.keys(categorizedList).length === 0) {
+  if (!categorizedList || !categorizedList.aisleMap || Object.keys(categorizedList.aisleMap).length === 0) {
     return (
       <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
         <PackageSearch className="h-16 w-16 mb-4" />
@@ -22,7 +22,7 @@ export function CategorizedDisplay({ categorizedList, checkedItems, onItemToggle
     );
   }
 
-  const sortedAisles = Object.entries(categorizedList).sort(([aisleA], [aisleB]) =>
+  const sortedAisles = Object.entries(categorizedList.aisleMap).sort(([aisleA], [aisleB]) =>
     aisleA.localeCompare(aisleB)
   );
 
