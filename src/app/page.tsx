@@ -67,7 +67,7 @@ export default function Home() {
         
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || ''} AisleAssist. Happy Shopping!</p>
+        <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
       </footer>
     </>
   );

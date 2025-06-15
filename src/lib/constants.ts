@@ -1,6 +1,6 @@
 
 export const LOCAL_STORAGE_KEYS = {
-  ITEMS_INPUT: 'aisleAssist_itemsInput',
-  CATEGORIZED_LIST: 'aisleAssist_categorizedList',
-  CHECKED_ITEMS: 'aisleAssist_checkedItems',
+  ITEMS_INPUT: 'aislePilot_itemsInput',
+  CATEGORIZED_LIST: 'aislePilot_categorizedList',
+  CHECKED_ITEMS: 'aislePilot_checkedItems',
 };

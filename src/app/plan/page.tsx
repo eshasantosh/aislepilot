@@ -129,7 +129,7 @@ export default function PlanPage() {
           <p className="text-muted-foreground">Categorizing your items...</p>
         </main>
         <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear || new Date().getFullYear()} AisleAssist. Happy Shopping!</p>
+          <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
         </footer>
       </>
     );
@@ -171,7 +171,7 @@ export default function PlanPage() {
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || ''} AisleAssist. Happy Shopping!</p>
+        <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
       </footer>
     </>
   );
