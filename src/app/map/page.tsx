@@ -70,9 +70,9 @@ export default function MapPage() {
   if (isLoading && !categorizedList) {
     return (
       <>
-        <AppHeader />
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <AppHeader /> {/* Placed here so it's visible during loading too */}
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
         <footer className="py-6 text-center text-sm text-muted-foreground">
@@ -84,7 +84,6 @@ export default function MapPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
         <div className="mb-6">
           <Link href="/plan" passHref>
@@ -94,6 +93,8 @@ export default function MapPage() {
             </Button>
           </Link>
         </div>
+        
+        <AppHeader />
 
         <CategorizedDisplay
           categorizedList={categorizedList}
