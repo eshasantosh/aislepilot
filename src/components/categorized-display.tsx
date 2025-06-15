@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { CategorizeItemsOutput } from "@/ai/flows/categorize-items";
@@ -12,7 +13,7 @@ interface CategorizedDisplayProps {
 }
 
 export function CategorizedDisplay({ categorizedList, checkedItems, onItemToggle }: CategorizedDisplayProps) {
-  if (!categorizedList || !categorizedList.aisleMap || Object.keys(categorizedList.aisleMap).length === 0) {
+  if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
     return (
       <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
         <PackageSearch className="h-16 w-16 mb-4" />
@@ -22,8 +23,8 @@ export function CategorizedDisplay({ categorizedList, checkedItems, onItemToggle
     );
   }
 
-  const sortedAisles = Object.entries(categorizedList.aisleMap).sort(([aisleA], [aisleB]) =>
-    aisleA.localeCompare(aisleB)
+  const sortedAisles = [...categorizedList.categorizedAisles].sort((a, b) =>
+    a.aisleName.localeCompare(b.aisleName)
   );
 
   return (
@@ -43,7 +44,7 @@ export function CategorizedDisplay({ categorizedList, checkedItems, onItemToggle
             },
           }}
         >
-          {sortedAisles.map(([aisleName, items]) => (
+          {sortedAisles.map(({ aisleName, items }) => (
             <AisleCard
               key={aisleName}
               aisleName={aisleName}
