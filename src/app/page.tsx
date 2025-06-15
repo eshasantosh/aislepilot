@@ -2,24 +2,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { GroceryForm } from '@/components/grocery-form';
-import { CategorizedDisplay } from '@/components/categorized-display';
-import { categorizeItems, type CategorizeItemsOutput, type CategorizeItemsInput } from '@/ai/flows/categorize-items';
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { MapPin } from 'lucide-react';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const [itemsInput, setItemsInput] = useState<string>('');
-  const [categorizedList, setCategorizedList] = useState<CategorizeItemsOutput | null>(null);
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -27,95 +21,35 @@ export default function Home() {
     const savedItemsInput = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT);
     if (savedItemsInput) setItemsInput(savedItemsInput);
 
-    const savedCategorizedList = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-    if (savedCategorizedList) {
-      try {
-        setCategorizedList(JSON.parse(savedCategorizedList));
-      } catch (e) {
-        console.error("Error parsing categorized list from localStorage", e);
-        localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST); // Clear corrupted data
-      }
-    }
-    
-    const savedCheckedItems = localStorage.getItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
-    if (savedCheckedItems) {
-      try {
-        setCheckedItems(JSON.parse(savedCheckedItems));
-      } catch (e) {
-        console.error("Error parsing checked items from localStorage", e);
-        localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS); // Clear corrupted data
-      }
-    }
+    // Clear categorized list and checked items from local storage if user is back on the main input page
+    // to ensure a fresh start for the /plan page unless they explicitly navigate back and forth.
+    // This can be adjusted based on desired UX for persistence.
+    // localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
+    // localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+
+
   }, []);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT, itemsInput);
   }, [itemsInput]);
 
-  useEffect(() => {
-    if (categorizedList) {
-      localStorage.setItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST, JSON.stringify(categorizedList));
-    } else {
-      // Only remove if it was explicitly set to null, not on initial load
-      // This check might need adjustment based on exact desired behavior on clear vs. initial
-      if (localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST) && !isLoading) { 
-         localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-      }
-    }
-  }, [categorizedList, isLoading]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
-  }, [checkedItems]);
-
-
-  const handleCategorizeItems = async (items: string) => {
-    setItemsInput(items); 
-    setIsLoading(true);
-    setCategorizedList(null); 
-
-    try {
-      const inputForAI: CategorizeItemsInput = { items };
-      const result = await categorizeItems(inputForAI);
-      if (result && result.categorizedAisles && result.categorizedAisles.length === 0 && items.trim() !== "") {
-        toast({
-          title: "No Categories Found",
-          description: "The AI couldn't categorize the items. Try rephrasing or adding more specific items.",
-          variant: "default",
-        });
-      }
-      setCategorizedList(result);
-    } catch (error) {
-      console.error("Error categorizing items:", error);
-      toast({
-        variant: "destructive",
-        title: "Categorization Error",
-        description: "Failed to categorize items. Please try again.",
-      });
-      setCategorizedList(null);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleFormSubmit = async (items: string) => {
+    setItemsInput(items);
+    // Ensure itemsInput is set in localStorage before navigating
+    localStorage.setItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT, items);
+    router.push('/plan');
   };
 
   const handleClearList = () => {
     setItemsInput('');
-    setCategorizedList(null);
-    setCheckedItems({});
     localStorage.removeItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT);
-    localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-    localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST); // Also clear categorized list
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS); // and checked items
     toast({
       title: "List Cleared",
-      description: "Your grocery list has been cleared.",
+      description: "Your grocery list input has been cleared.",
     });
-  };
-
-  const handleItemToggle = (itemName: string, _aisleName: string) => {
-    setCheckedItems((prev) => ({
-      ...prev,
-      [itemName]: !prev[itemName],
-    }));
   };
 
   return (
@@ -124,34 +58,17 @@ export default function Home() {
       <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
         <div className="max-w-2xl mx-auto">
           <GroceryForm
-            onSubmitItems={handleCategorizeItems}
+            onSubmitItems={handleFormSubmit}
             onClearList={handleClearList}
-            isLoading={isLoading}
+            isLoading={false} // isLoading is now managed on /plan page
             initialItems={itemsInput}
           />
         </div>
-        
-        { (categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 ) || (itemsInput.trim() === "" && (!categorizedList || categorizedList.categorizedAisles.length === 0)) ? (
-            <Separator className="my-12" />
-          ) : null
-        }
-
-        <CategorizedDisplay
-          categorizedList={categorizedList}
-          checkedItems={checkedItems}
-          onItemToggle={handleItemToggle}
-        />
-
-        {categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 && (
-          <div className="mt-8 text-center">
-            <Link href="/map" passHref>
-              <Button variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-                <MapPin className="mr-2 h-5 w-5" />
-                View Store Map & Checklist
-              </Button>
-            </Link>
-          </div>
-        )}
+        <Separator className="my-12" />
+         <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+            <p className="text-xl font-medium">Enter your grocery items above.</p>
+            <p>Click "Categorize Items" to generate your shopping plan on the next page!</p>
+        </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>&copy; {currentYear || ''} AisleAssist. Happy Shopping!</p>
