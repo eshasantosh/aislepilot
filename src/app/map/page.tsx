@@ -71,7 +71,7 @@ export default function MapPage() {
     return (
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <AppHeader /> {/* Placed here so it's visible during loading too */}
+          <AppHeader /> 
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
@@ -131,3 +131,4 @@ export default function MapPage() {
     </>
   );
 }
+
