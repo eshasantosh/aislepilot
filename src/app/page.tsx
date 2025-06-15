@@ -64,11 +64,7 @@ export default function Home() {
             initialItems={itemsInput}
           />
         </div>
-        <Separator className="my-12" />
-         <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
-            <p className="text-xl font-medium">Enter your grocery items above.</p>
-            <p>Click "Categorize Items" to generate your shopping plan on the next page!</p>
-        </div>
+        
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>&copy; {currentYear || ''} AisleAssist. Happy Shopping!</p>
