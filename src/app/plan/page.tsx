@@ -31,7 +31,7 @@ export default function PlanPage() {
         description: "Please enter some items on the main page first.",
         variant: "default"
       });
-      router.push('/'); // Redirect if no items
+      router.push('/'); 
       return;
     }
 
@@ -40,16 +40,12 @@ export default function PlanPage() {
 
     if (savedCategorizedList) {
       try {
-        // Check if the saved list corresponds to the current itemsInput
-        // This is a simple check; more sophisticated logic might be needed if inputs can be very similar
-        // For now, we assume if a categorized list exists, it's for the current input from localStorage
         const parsedList = JSON.parse(savedCategorizedList);
         setCategorizedList(parsedList);
-        setIsLoading(false); // Already have a list, no need to call AI
+        setIsLoading(false); 
       } catch (e) {
         console.error("Error parsing categorized list from localStorage on plan page", e);
         localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-        // Proceed to categorize if parsing failed
         performCategorization(itemsToCategorize);
       }
     } else {
@@ -69,7 +65,7 @@ export default function PlanPage() {
 
   const performCategorization = async (items: string) => {
     setIsLoading(true);
-    setCategorizedList(null); // Clear previous list before new categorization
+    setCategorizedList(null); 
 
     try {
       const inputForAI: CategorizeItemsInput = { items };
@@ -89,22 +85,20 @@ export default function PlanPage() {
         title: "Categorization Error",
         description: "Failed to categorize items. Please try again.",
       });
-      setCategorizedList(null); // Ensure list is null on error
+      setCategorizedList(null); 
     } finally {
       setIsLoading(false);
     }
   };
   
   useEffect(() => {
-    // Persist categorizedList to localStorage when it changes
-    if (categorizedList && !isLoading) { // Avoid writing initial null or during loading
+    if (categorizedList && !isLoading) { 
       localStorage.setItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST, JSON.stringify(categorizedList));
     }
   }, [categorizedList, isLoading]);
 
   useEffect(() => {
-    // Persist checkedItems to localStorage
-    if (!isLoading) { // Avoid writing if initial load is still happening
+    if (!isLoading) { 
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
     }
   }, [checkedItems, isLoading]);
@@ -157,6 +151,7 @@ export default function PlanPage() {
           categorizedList={categorizedList}
           checkedItems={checkedItems}
           onItemToggle={handleItemToggle}
+          displayMode="grid" 
         />
 
         {categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 && (

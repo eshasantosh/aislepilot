@@ -11,14 +11,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-// import { useToast } from "@/hooks/use-toast"; // Available if needed
 
 export default function MapPage() {
   const [categorizedList, setCategorizedList] = useState<CategorizeItemsOutput | null>(null);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
-  // const { toast } = useToast(); // Available if needed for notifications
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -32,7 +30,6 @@ export default function MapPage() {
           listFromStorage = JSON.parse(savedCategorizedList);
         } catch (parseError) {
           console.error("Error parsing categorized list from localStorage on map page", parseError);
-          // Optionally clear corrupted data: localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
         }
       }
 
@@ -42,26 +39,23 @@ export default function MapPage() {
           checksFromStorage = JSON.parse(savedCheckedItems);
         } catch (parseError) {
           console.error("Error parsing checked items from localStorage on map page", parseError);
-          // Optionally clear corrupted data: localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
         }
       }
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
-      // toast({ variant: "destructive", title: "Storage Error", description: "Could not access your grocery list data. Please ensure localStorage is enabled." });
     }
 
     setCategorizedList(listFromStorage);
     setCheckedItems(checksFromStorage);
-    setIsLoading(false); // Crucial: ensure loading state is always resolved
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (!isLoading) { // Avoid writing to localStorage on initial mount if still loading
+    if (!isLoading) { 
       try {
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
       } catch (storageAccessError) {
         console.error("Error accessing localStorage on map page (write operation):", storageAccessError);
-        // toast({ variant: "destructive", title: "Storage Error", description: "Could not save checklist changes. Please ensure localStorage is enabled." });
       }
     }
   }, [checkedItems, isLoading]);
@@ -73,7 +67,7 @@ export default function MapPage() {
     }));
   };
 
-  if (isLoading && !categorizedList) { // Show loader only if data isn't ready yet (or if initial load is still happening)
+  if (isLoading && !categorizedList) {
     return (
       <>
         <AppHeader />
@@ -101,6 +95,15 @@ export default function MapPage() {
           </Link>
         </div>
 
+        <CategorizedDisplay
+          categorizedList={categorizedList}
+          checkedItems={checkedItems}
+          onItemToggle={handleItemToggle}
+          displayMode="carousel" 
+        />
+        
+        <Separator className="my-8" />
+
         <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
           <h2 className="text-xl sm:text-2xl font-semibold font-headline mb-4 flex items-center">
             <MapPin className="mr-2 h-6 w-6 text-primary" />
@@ -119,14 +122,7 @@ export default function MapPage() {
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
         </section>
-        
-        <Separator className="my-8" />
 
-        <CategorizedDisplay
-          categorizedList={categorizedList}
-          checkedItems={checkedItems}
-          onItemToggle={handleItemToggle}
-        />
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
