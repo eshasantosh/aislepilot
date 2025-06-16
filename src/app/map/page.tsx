@@ -243,10 +243,10 @@ export default function MapPage() {
         <section className="my-8">
           <div className="bg-muted rounded-md overflow-hidden border">
             <Image
-              src="https://placehold.co/800x800.png"
+              src="https://placehold.co/900x1600.png"
               alt="Store Map Placeholder"
-              width={800}
-              height={800}
+              width={900}
+              height={1600}
               className="w-full h-auto object-contain"
               data-ai-hint="store layout supermarket plan"
               priority
@@ -373,5 +373,6 @@ export default function MapPage() {
     
 
     
+
 
 
