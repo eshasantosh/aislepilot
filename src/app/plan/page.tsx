@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import { categorizeItems, type CategorizeItemsOutput, type CategorizeItemsInput } from '@/ai/flows/categorize-items';
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
@@ -142,16 +141,20 @@ export default function PlanPage() {
     });
   };
 
+  const backButtonElement = (
+    <Link href="/" passHref>
+      <Button variant="outline" size="icon" className="shadow-sm hover:shadow-md transition-shadow">
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
+    </Link>
+  );
+
   if (isLoading && !categorizedList) {
     return (
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <div className="my-6"> {/* Added margin for spacing when AppHeader is removed */}
-             <Link href="/" passHref>
-                <Button variant="outline" size="icon" className="shadow-sm hover:shadow-md transition-shadow">
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-            </Link>
+          <div className="my-6 self-start">
+             {backButtonElement}
           </div>
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Categorizing your items...</p>
@@ -166,24 +169,12 @@ export default function PlanPage() {
   return (
     <>
       <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
-        <div className="mb-6">
-          <Link href="/" passHref>
-            <Button variant="outline" size="icon" className="shadow-sm hover:shadow-md transition-shadow">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        { (categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 ) ? (
-            <Separator className="my-12" />
-          ) : null
-        }
-
         <CategorizedDisplay
           categorizedList={categorizedList}
           checkedItems={checkedItems}
           onItemToggle={handleItemToggle}
           displayMode="grid"
+          backButton={backButtonElement}
         />
 
         {categorizedList && categorizedList.categorizedAisles && categorizedList.categorizedAisles.length > 0 && (
