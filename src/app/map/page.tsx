@@ -231,7 +231,7 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8">
+      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8 pb-24"> {/* Added pb-24 for space with sticky footer */}
         
         <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
           <CategorizedDisplay
@@ -243,9 +243,7 @@ export default function MapPage() {
           />
         </div>
         
-        <Separator className="my-8" />
-
-        <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
+        <section className="my-8">
           <h2 className="text-xl sm:text-2xl font-semibold font-headline mb-4 flex items-center">
             <MapPin className="mr-2 h-6 w-6 text-primary" />
             Store Layout
@@ -264,10 +262,10 @@ export default function MapPage() {
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
         </section>
 
-        <div className="sticky bottom-0 z-30 bg-background py-4">
-          <Card className="p-4 sm:p-6 shadow-lg">
-            <CardContent className="p-0">
-              <div className="flex flex-row justify-between items-center gap-4">
+        <div className="sticky bottom-0 z-30 bg-background py-4 -mx-4 md:-mx-6 px-4 md:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-2px_rgba(0,0,0,0.1)]">
+          <Card className="shadow-none border-0 sm:border sm:shadow-lg">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-row justify-between items-center gap-2">
                 <div className="flex items-center">
                   <CreditCard className="mr-3 h-7 w-7 text-primary" />
                   <div>
@@ -281,7 +279,7 @@ export default function MapPage() {
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
                       <ScanLine className="mr-2 h-4 w-4" />
-                      Scan Barcode
+                      Scan
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
@@ -317,7 +315,7 @@ export default function MapPage() {
                   <AccordionContent className="pt-4">
                     {completedItems.length > 0 ? (
                       <>
-                        <ul className="space-y-3">
+                        <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
                           {completedItems.map(item => {
                             const quantity = itemQuantities[item] || 1;
                             const subtotal = quantity * ITEM_PRICE_RS;
