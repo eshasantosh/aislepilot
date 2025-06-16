@@ -12,12 +12,14 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from 'react';
 
 interface CategorizedDisplayProps {
   categorizedList: CategorizeItemsOutput | null;
   checkedItems: Record<string, boolean>;
   onItemToggle: (itemName: string, aisleName: string) => void;
   displayMode?: "carousel" | "grid";
+  backButton?: ReactNode;
 }
 
 export function CategorizedDisplay({
@@ -25,6 +27,7 @@ export function CategorizedDisplay({
   checkedItems,
   onItemToggle,
   displayMode = "grid", 
+  backButton,
 }: CategorizedDisplayProps) {
   if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
     return (
@@ -41,15 +44,29 @@ export function CategorizedDisplay({
   );
 
   return (
-    <div className={cn(displayMode === "carousel" ? "mt-2" : "mt-10", "space-y-6")}>
-      <h2 className="text-2xl font-semibold font-headline text-center">AislePilot</h2>
+    <div className={cn(
+      displayMode === "grid" ? "mt-10" : "", // No top margin for carousel mode, handled by sticky wrapper
+      "space-y-4" // Consistent spacing
+    )}>
+      <div className="relative flex items-center justify-center h-10"> {/* Container for title and button */}
+        {backButton && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+            {backButton}
+          </div>
+        )}
+        <h2 className="text-2xl font-semibold font-headline text-center px-4"> {/* Added padding to h2 */}
+          AislePilot
+        </h2>
+      </div>
+
       {displayMode === "carousel" ? (
         <Carousel
           opts={{
             align: "start",
             loop: sortedAisles.length > 1, 
           }}
-          className="w-full max-w-md mx-auto" 
+          // Removed max-w-md and mx-auto, as sticky wrapper handles width
+          className="w-full" 
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
