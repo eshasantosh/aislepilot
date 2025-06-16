@@ -148,7 +148,7 @@ export default function MapPage() {
 
   const calculateTotalPrice = () => {
     return completedItems.reduce((total, item) => {
-      const quantity = itemQuantities[item] || 0; // Default to 0 if not found, though should be 1+
+      const quantity = itemQuantities[item] || 0; 
       return total + (quantity * ITEM_PRICE_RS);
     }, 0);
   };
@@ -158,6 +158,14 @@ export default function MapPage() {
     return (
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
+          <div className="mb-6 w-full max-w-2xl mx-auto"> 
+            <Link href="/plan" passHref>
+              <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Grocery Plan
+              </Button>
+            </Link>
+          </div>
           <AppHeader />
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
@@ -182,13 +190,15 @@ export default function MapPage() {
         </div>
         
         <AppHeader />
-
-        <CategorizedDisplay
-          categorizedList={categorizedList}
-          checkedItems={checkedItems}
-          onItemToggle={handleItemToggle}
-          displayMode="carousel"
-        />
+        
+        <div className="sticky top-0 z-20 bg-background pb-3 pt-1 shadow-md">
+          <CategorizedDisplay
+            categorizedList={categorizedList}
+            checkedItems={checkedItems}
+            onItemToggle={handleItemToggle}
+            displayMode="carousel"
+          />
+        </div>
         
         <Separator className="my-8" />
 
@@ -307,4 +317,3 @@ export default function MapPage() {
     </>
   );
 }
-
