@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
@@ -19,6 +19,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 const ITEM_PRICE_RS = 10;
 
@@ -28,6 +31,9 @@ export default function MapPage() {
   const [itemQuantities, setItemQuantities] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -65,13 +71,19 @@ export default function MapPage() {
 
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
+      // Optionally, show a toast to the user if localStorage access fails
+      toast({
+        variant: "destructive",
+        title: "Storage Error",
+        description: "Could not load saved data. Your list might not persist.",
+      });
     } finally {
-      setCategorizedList(listFromStorage); // Set state after try-catch-finally structure
+      setCategorizedList(listFromStorage); 
       setCheckedItems(checksFromStorage);
       setItemQuantities(quantitiesFromStorage);
-      setIsLoading(false); // Ensure isLoading is set to false
+      setIsLoading(false); 
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!isLoading) { 
@@ -79,9 +91,14 @@ export default function MapPage() {
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
       } catch (storageAccessError) {
         console.error("Error saving checked items to localStorage on map page:", storageAccessError);
+         toast({
+            variant: "destructive",
+            title: "Storage Error",
+            description: "Could not save your checked items.",
+          });
       }
     }
-  }, [checkedItems, isLoading]);
+  }, [checkedItems, isLoading, toast]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -89,9 +106,42 @@ export default function MapPage() {
         localStorage.setItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES, JSON.stringify(itemQuantities));
       } catch (storageAccessError) {
         console.error("Error saving item quantities to localStorage on map page:", storageAccessError);
+        toast({
+            variant: "destructive",
+            title: "Storage Error",
+            description: "Could not save item quantities.",
+        });
       }
     }
-  }, [itemQuantities, isLoading]);
+  }, [itemQuantities, isLoading, toast]);
+
+  const requestCameraPermission = async () => {
+    if (typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use the scanner.',
+        });
+      }
+    } else {
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Not Supported',
+          description: 'Your browser does not support camera access for scanning.',
+        });
+    }
+  };
+
 
   const handleItemToggle = (itemName: string, _aisleName: string) => {
     setCheckedItems((prevChecked) => {
@@ -190,7 +240,7 @@ export default function MapPage() {
         
         <AppHeader />
         
-        <div className="sticky top-0 z-20 bg-background pb-2 pt-1 shadow-md">
+        <div className="sticky top-0 z-20 bg-background pb-1 pt-1 shadow-md">
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
@@ -218,12 +268,20 @@ export default function MapPage() {
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
-          
-          <div className="mt-6 text-center">
-            <Dialog>
+        </section>
+
+        <Separator className="my-8" />
+
+        <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl sm:text-2xl font-semibold font-headline flex items-center">
+              <ShoppingCart className="mr-2 h-6 w-6 text-primary" />
+              Shopping Cart
+            </h2>
+            <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
               <DialogTrigger asChild>
-                <Button variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-                  <ScanLine className="mr-2 h-5 w-5" />
+                <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+                  <ScanLine className="mr-2 h-4 w-4" />
                   Scan Barcode
                 </Button>
               </DialogTrigger>
@@ -234,26 +292,22 @@ export default function MapPage() {
                     Point your camera at a barcode to scan it.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 text-center">
-                  <p className="text-muted-foreground">
-                    (Barcode scanning functionality coming soon!)
-                  </p>
-                  <div className="mt-4 flex justify-center">
-                    <ScanLine className="h-24 w-24 text-primary/50" />
-                  </div>
+                <div className="py-4">
+                  <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
+                  {hasCameraPermission === false && (
+                    <Alert variant="destructive" className="mt-4">
+                      <AlertTitle>Camera Access Denied</AlertTitle>
+                      <AlertDescription>
+                        Please enable camera permissions in your browser settings to use the scanner. You might need to refresh the page after enabling.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera access...</p>}
                 </div>
               </DialogContent>
             </Dialog>
           </div>
-        </section>
 
-        <Separator className="my-8" />
-
-        <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
-          <h2 className="text-xl sm:text-2xl font-semibold font-headline mb-4 flex items-center">
-            <ShoppingCart className="mr-2 h-6 w-6 text-primary" />
-            Shopping Cart
-          </h2>
           {completedItems.length > 0 ? (
             <>
               <ul className="space-y-3">
