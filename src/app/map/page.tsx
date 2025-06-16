@@ -8,7 +8,7 @@ import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart, Plus, Minus, CreditCard } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, ScanLine, Plus, Minus, CreditCard } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -21,6 +21,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -217,7 +223,6 @@ export default function MapPage() {
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
           <div className="mb-6 w-full max-w-2xl mx-auto self-start"> 
-             {/* Back button is now part of CategorizedDisplay for sticky header */}
           </div>
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
@@ -313,66 +318,68 @@ export default function MapPage() {
         <Separator className="my-8" />
 
         <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl sm:text-2xl font-semibold font-headline flex items-center">
-              <ShoppingCart className="mr-2 h-6 w-6 text-primary" />
-              Shopping Cart Items
-            </h2>
-          </div>
-
-          {completedItems.length > 0 ? (
-            <>
-              <ul className="space-y-3">
-                {completedItems.map(item => {
-                  const quantity = itemQuantities[item] || 1;
-                  const subtotal = quantity * ITEM_PRICE_RS;
-                  return (
-                    <li 
-                      key={item} 
-                      className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <span className="font-medium flex-grow mb-2 sm:mb-0">{item}</span>
-                      <div className="flex items-center justify-between sm:justify-end gap-2">
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-7 w-7" 
-                            onClick={() => handleDecreaseQuantity(item)}
-                            disabled={quantity <= 1}
-                            aria-label={`Decrease quantity of ${item}`}
+          <Accordion type="single" collapsible className="w-full" defaultValue="cart-items">
+            <AccordionItem value="cart-items" className="border-b-0">
+              <AccordionTrigger className="text-xl sm:text-2xl font-semibold font-headline hover:no-underline">
+                Shopping Cart Items
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                {completedItems.length > 0 ? (
+                  <>
+                    <ul className="space-y-3">
+                      {completedItems.map(item => {
+                        const quantity = itemQuantities[item] || 1;
+                        const subtotal = quantity * ITEM_PRICE_RS;
+                        return (
+                          <li 
+                            key={item} 
+                            className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between"
                           >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="w-6 text-center font-medium">{quantity}</span>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-7 w-7"
-                            onClick={() => handleIncreaseQuantity(item)}
-                            aria-label={`Increase quantity of ${item}`}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="text-sm text-muted-foreground w-20 text-right">
-                          Rs {subtotal.toFixed(2)}
-                        </span>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <Separator className="my-6" />
-              <div className="text-right">
-                <p className="text-lg font-semibold">
-                  Overall Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
-                </p>
-              </div>
-            </>
-          ) : (
-            <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
-          )}
+                            <span className="font-medium flex-grow mb-2 sm:mb-0">{item}</span>
+                            <div className="flex items-center justify-between sm:justify-end gap-2">
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-7 w-7" 
+                                  onClick={() => handleDecreaseQuantity(item)}
+                                  disabled={quantity <= 1}
+                                  aria-label={`Decrease quantity of ${item}`}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-6 text-center font-medium">{quantity}</span>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-7 w-7"
+                                  onClick={() => handleIncreaseQuantity(item)}
+                                  aria-label={`Increase quantity of ${item}`}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <span className="text-sm text-muted-foreground w-20 text-right">
+                                Rs {subtotal.toFixed(2)}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <Separator className="my-6" />
+                    <div className="text-right">
+                      <p className="text-lg font-semibold">
+                        Overall Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </section>
 
       </main>
