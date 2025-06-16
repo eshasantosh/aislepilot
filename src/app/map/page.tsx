@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-// AppHeader import removed as it's no longer used on this page
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart, Plus, Minus, CreditCard } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -17,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -222,7 +221,6 @@ export default function MapPage() {
               </Button>
             </Link>
           </div>
-          {/* AppHeader removed from loading state */}
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
@@ -235,10 +233,9 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8"> {/* Removed py-8, only pt-8 */}
-        {/* AppHeader and standalone Back button removed from here */}
+      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8">
         
-        <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6"> {/* Added negative margins and padding to make sticky full width of container area */}
+        <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
@@ -271,40 +268,58 @@ export default function MapPage() {
 
         <Separator className="my-8" />
 
+        <Card className="mb-8 p-4 sm:p-6 shadow-lg">
+          <CardContent className="p-0">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center">
+                <CreditCard className="mr-3 h-7 w-7 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Cart Total</p>
+                  <p className="text-2xl font-semibold font-headline text-primary">
+                    Rs {calculateTotalPrice().toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow w-full sm:w-auto">
+                    <ScanLine className="mr-2 h-4 w-4" />
+                    Scan Barcode
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Barcode Scanner</DialogTitle>
+                    <DialogDescription>
+                      Point your camera at a barcode to scan it.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
+                    {hasCameraPermission === false && (
+                      <Alert variant="destructive" className="mt-4">
+                        <AlertTitle>Camera Access Denied</AlertTitle>
+                        <AlertDescription>
+                          Please enable camera permissions in your browser settings to use the scanner. You might need to refresh the page after enabling.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera access...</p>}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Separator className="my-8" />
+
         <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl sm:text-2xl font-semibold font-headline flex items-center">
               <ShoppingCart className="mr-2 h-6 w-6 text-primary" />
-              Shopping Cart
+              Shopping Cart Items
             </h2>
-            <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
-                  <ScanLine className="mr-2 h-4 w-4" />
-                  Scan Barcode
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Barcode Scanner</DialogTitle>
-                  <DialogDescription>
-                    Point your camera at a barcode to scan it.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
-                  {hasCameraPermission === false && (
-                    <Alert variant="destructive" className="mt-4">
-                      <AlertTitle>Camera Access Denied</AlertTitle>
-                      <AlertDescription>
-                        Please enable camera permissions in your browser settings to use the scanner. You might need to refresh the page after enabling.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera access...</p>}
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
 
           {completedItems.length > 0 ? (
@@ -353,7 +368,7 @@ export default function MapPage() {
               <Separator className="my-6" />
               <div className="text-right">
                 <p className="text-lg font-semibold">
-                  Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
+                  Overall Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
                 </p>
               </div>
             </>
@@ -369,3 +384,5 @@ export default function MapPage() {
     </>
   );
 }
+
+    
