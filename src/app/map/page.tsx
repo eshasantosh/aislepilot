@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { AppHeader } from '@/components/app-header';
+// AppHeader import removed as it's no longer used on this page
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
@@ -201,12 +201,20 @@ export default function MapPage() {
     }, 0);
   };
 
+  const backButtonElement = (
+    <Link href="/plan" passHref>
+      <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+    </Link>
+  );
 
   if (isLoading && !categorizedList) {
     return (
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <div className="mb-6 w-full max-w-2xl mx-auto"> 
+          <div className="mb-6 w-full max-w-2xl mx-auto self-start"> 
             <Link href="/plan" passHref>
               <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -214,7 +222,7 @@ export default function MapPage() {
               </Button>
             </Link>
           </div>
-          <AppHeader />
+          {/* AppHeader removed from loading state */}
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
@@ -227,24 +235,16 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
-        <div className="mb-6">
-          <Link href="/plan" passHref>
-            <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </Link>
-        </div>
+      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8"> {/* Removed py-8, only pt-8 */}
+        {/* AppHeader and standalone Back button removed from here */}
         
-        <AppHeader />
-        
-        <div className="sticky top-0 z-20 bg-background pb-1 pt-1 shadow-md">
+        <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6"> {/* Added negative margins and padding to make sticky full width of container area */}
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
             onItemToggle={handleItemToggle}
             displayMode="carousel"
+            backButton={backButtonElement}
           />
         </div>
         
