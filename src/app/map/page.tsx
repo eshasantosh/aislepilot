@@ -8,7 +8,7 @@ import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, MapPin, Loader2, ScanLine, Plus, Minus, CreditCard } from 'lucide-react';
+import { ArrowLeft, Loader2, ScanLine, Plus, Minus, CreditCard } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -231,7 +231,7 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8 pb-24"> {/* Added pb-24 for space with sticky footer */}
+      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8 pb-24">
         
         <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
           <CategorizedDisplay
@@ -244,10 +244,6 @@ export default function MapPage() {
         </div>
         
         <section className="my-8">
-          <h2 className="text-xl sm:text-2xl font-semibold font-headline mb-4 flex items-center">
-            <MapPin className="mr-2 h-6 w-6 text-primary" />
-            Store Layout
-          </h2>
           <div className="bg-muted rounded-md overflow-hidden border">
             <Image
               src="https://placehold.co/800x600.png"
@@ -377,4 +373,6 @@ export default function MapPage() {
     </>
   );
 }
+    
+
     
