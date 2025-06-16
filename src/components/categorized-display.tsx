@@ -42,7 +42,7 @@ export function CategorizedDisplay({
 
   return (
     <div className={cn(displayMode === "carousel" ? "mt-2" : "mt-10", "space-y-6")}>
-      <h2 className="text-2xl font-semibold font-headline text-center">Your Grocery Plan</h2>
+      <h2 className="text-2xl font-semibold font-headline text-center">AislePilot</h2>
       {displayMode === "carousel" ? (
         <Carousel
           opts={{
