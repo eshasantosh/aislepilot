@@ -227,8 +227,23 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow flex flex-col">
+      <main className="relative flex-grow flex flex-col overflow-hidden">
         
+        {/* Google Map Background Layer */}
+        <div className="absolute inset-0 z-0">
+          <iframe
+            src="https://maps.google.com/maps?q=directions%20from%20Times%20Square%2C%20New%20York%20to%20Empire%20State%20Building%2C%20New%20York&output=embed"
+            className="w-full h-full"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Google Maps Route"
+            data-ai-hint="city street map"
+          ></iframe>
+        </div>
+
+        {/* Top Sticky Header (Carousel) */}
         <div className="sticky top-0 z-20 py-2 px-4 md:px-6">
           <CategorizedDisplay
             categorizedList={categorizedList}
@@ -239,23 +254,11 @@ export default function MapPage() {
           />
         </div>
         
-        <section className="flex-grow flex flex-col">
-          <div className="flex-grow">
-            <iframe
-              src="https://maps.google.com/maps?q=directions%20from%20Times%20Square%2C%20New%20York%20to%20Empire%20State%20Building%2C%20New%20York&output=embed"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Google Maps Route"
-              data-ai-hint="city street map"
-            ></iframe>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center px-4 md:px-6 pb-2">Map data © Google. Route for demonstration purposes.</p>
-        </section>
+        {/* Spacer to allow map to be scrollable "under" the sticky elements */}
+        {/* This div ensures the bottom sticky element is pushed down correctly. */}
+        <div className="flex-grow"></div>
 
+        {/* Bottom Sticky Footer (Cart Card and Map Caption) */}
         <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6">
           <Card className="shadow-none border-0 sm:border">
             <CardContent className="p-4 sm:p-6">
@@ -365,6 +368,7 @@ export default function MapPage() {
               </Accordion>
             </CardContent>
           </Card>
+          <p className="text-xs text-muted-foreground mt-2 text-center pb-2">Map data © Google. Route for demonstration purposes.</p>
         </div>
         
       </main>
@@ -372,10 +376,3 @@ export default function MapPage() {
   );
 }
     
-
-    
-
-
-
-
-
