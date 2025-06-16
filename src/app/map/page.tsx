@@ -225,9 +225,6 @@ export default function MapPage() {
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
-        <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
-        </footer>
       </>
     );
   }
@@ -267,121 +264,118 @@ export default function MapPage() {
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
         </section>
 
-        <Separator className="my-8" />
-
-        <Card className="mb-8 p-4 sm:p-6 shadow-lg">
-          <CardContent className="p-0">
-            <div className="flex flex-row justify-between items-center gap-4">
-              <div className="flex items-center">
-                <CreditCard className="mr-3 h-7 w-7 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Cart Total</p>
-                  <p className="text-2xl font-semibold font-headline text-primary">
-                    Rs {calculateTotalPrice().toFixed(2)}
-                  </p>
-                </div>
-              </div>
-              <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
-                    <ScanLine className="mr-2 h-4 w-4" />
-                    Scan Barcode
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Barcode Scanner</DialogTitle>
-                    <DialogDescription>
-                      Point your camera at a barcode to scan it.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
-                    {hasCameraPermission === false && (
-                      <Alert variant="destructive" className="mt-4">
-                        <AlertTitle>Camera Access Denied</AlertTitle>
-                        <AlertDescription>
-                          Please enable camera permissions in your browser settings to use the scanner. You might need to refresh the page after enabling.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera access...</p>}
+        <div className="sticky bottom-0 z-30 bg-background py-4">
+          <Card className="p-4 sm:p-6 shadow-lg">
+            <CardContent className="p-0">
+              <div className="flex flex-row justify-between items-center gap-4">
+                <div className="flex items-center">
+                  <CreditCard className="mr-3 h-7 w-7 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Cart Total</p>
+                    <p className="text-2xl font-semibold font-headline text-primary">
+                      Rs {calculateTotalPrice().toFixed(2)}
+                    </p>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
+                <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+                      <ScanLine className="mr-2 h-4 w-4" />
+                      Scan Barcode
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Barcode Scanner</DialogTitle>
+                      <DialogDescription>
+                        Point your camera at a barcode to scan it.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
+                      {hasCameraPermission === false && (
+                        <Alert variant="destructive" className="mt-4">
+                          <AlertTitle>Camera Access Denied</AlertTitle>
+                          <AlertDescription>
+                            Please enable camera permissions in your browser settings to use the scanner. You might need to refresh the page after enabling.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera access...</p>}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
 
-            <Separator className="my-4" />
-            
-            <Accordion type="single" collapsible className="w-full" defaultValue="cart-items">
-              <AccordionItem value="cart-items" className="border-b-0">
-                <AccordionTrigger className="text-xl sm:text-2xl font-semibold font-headline hover:no-underline">
-                  Shopping Cart Items
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  {completedItems.length > 0 ? (
-                    <>
-                      <ul className="space-y-3">
-                        {completedItems.map(item => {
-                          const quantity = itemQuantities[item] || 1;
-                          const subtotal = quantity * ITEM_PRICE_RS;
-                          return (
-                            <li 
-                              key={item} 
-                              className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between"
-                            >
-                              <span className="font-medium flex-grow mb-2 sm:mb-0">{item}</span>
-                              <div className="flex items-center justify-between sm:justify-end gap-2">
-                                <div className="flex items-center gap-2">
-                                  <Button 
-                                    variant="outline" 
-                                    size="icon" 
-                                    className="h-7 w-7" 
-                                    onClick={() => handleDecreaseQuantity(item)}
-                                    disabled={quantity <= 1}
-                                    aria-label={`Decrease quantity of ${item}`}
-                                  >
-                                    <Minus className="h-4 w-4" />
-                                  </Button>
-                                  <span className="w-6 text-center font-medium">{quantity}</span>
-                                  <Button 
-                                    variant="outline" 
-                                    size="icon" 
-                                    className="h-7 w-7"
-                                    onClick={() => handleIncreaseQuantity(item)}
-                                    aria-label={`Increase quantity of ${item}`}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+              <Separator className="my-4" />
+              
+              <Accordion type="single" collapsible className="w-full" defaultValue="cart-items">
+                <AccordionItem value="cart-items" className="border-b-0">
+                  <AccordionTrigger className="text-xl sm:text-2xl font-semibold font-headline hover:no-underline">
+                    Shopping Cart Items
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    {completedItems.length > 0 ? (
+                      <>
+                        <ul className="space-y-3">
+                          {completedItems.map(item => {
+                            const quantity = itemQuantities[item] || 1;
+                            const subtotal = quantity * ITEM_PRICE_RS;
+                            return (
+                              <li 
+                                key={item} 
+                                className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between"
+                              >
+                                <span className="font-medium flex-grow mb-2 sm:mb-0">{item}</span>
+                                <div className="flex items-center justify-between sm:justify-end gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="icon" 
+                                      className="h-7 w-7" 
+                                      onClick={() => handleDecreaseQuantity(item)}
+                                      disabled={quantity <= 1}
+                                      aria-label={`Decrease quantity of ${item}`}
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-6 text-center font-medium">{quantity}</span>
+                                    <Button 
+                                      variant="outline" 
+                                      size="icon" 
+                                      className="h-7 w-7"
+                                      onClick={() => handleIncreaseQuantity(item)}
+                                      aria-label={`Increase quantity of ${item}`}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <span className="text-sm text-muted-foreground w-20 text-right">
+                                    Rs {subtotal.toFixed(2)}
+                                  </span>
                                 </div>
-                                <span className="text-sm text-muted-foreground w-20 text-right">
-                                  Rs {subtotal.toFixed(2)}
-                                </span>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      <Separator className="my-6" />
-                      <div className="text-right">
-                        <p className="text-lg font-semibold">
-                          Overall Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <Separator className="my-6" />
+                        <div className="text-right">
+                          <p className="text-lg font-semibold">
+                            Overall Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </div>
         
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
-      </footer>
     </>
   );
 }
