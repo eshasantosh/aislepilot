@@ -71,7 +71,6 @@ export default function MapPage() {
 
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
-      // Optionally, show a toast to the user if localStorage access fails
       toast({
         variant: "destructive",
         title: "Storage Error",
@@ -211,7 +210,7 @@ export default function MapPage() {
             <Link href="/plan" passHref>
               <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Grocery Plan
+                Back
               </Button>
             </Link>
           </div>
@@ -233,7 +232,7 @@ export default function MapPage() {
           <Link href="/plan" passHref>
             <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Grocery Plan
+              Back
             </Button>
           </Link>
         </div>
