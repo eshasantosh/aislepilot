@@ -11,6 +11,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
 
 interface CategorizedDisplayProps {
   categorizedList: CategorizeItemsOutput | null;
@@ -23,7 +24,7 @@ export function CategorizedDisplay({
   categorizedList,
   checkedItems,
   onItemToggle,
-  displayMode = "grid", // Default to grid
+  displayMode = "grid", 
 }: CategorizedDisplayProps) {
   if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
     return (
@@ -40,7 +41,7 @@ export function CategorizedDisplay({
   );
 
   return (
-    <div className="mt-10 space-y-6">
+    <div className={cn(displayMode === "carousel" ? "mt-2" : "mt-10", "space-y-6")}>
       <h2 className="text-2xl font-semibold font-headline text-center">Your Grocery Plan</h2>
       {displayMode === "carousel" ? (
         <Carousel
@@ -87,4 +88,3 @@ export function CategorizedDisplay({
     </div>
   );
 }
-
