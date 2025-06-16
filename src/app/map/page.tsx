@@ -246,10 +246,10 @@ export default function MapPage() {
         <section className="my-8">
           <div className="bg-muted rounded-md overflow-hidden border">
             <Image
-              src="https://placehold.co/800x600.png"
+              src="https://placehold.co/600x800.png"
               alt="Store Map Placeholder"
-              width={800}
-              height={600}
+              width={600}
+              height={800}
               className="w-full h-auto object-contain"
               data-ai-hint="store layout supermarket plan"
               priority
@@ -258,7 +258,7 @@ export default function MapPage() {
           <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
         </section>
 
-        <div className="sticky bottom-0 z-30 bg-background py-4 -mx-4 md:-mx-6 px-4 md:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-2px_rgba(0,0,0,0.1)]">
+        <div className="sticky bottom-0 z-30 bg-background pt-4 -mx-4 md:-mx-6 px-4 md:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-2px_rgba(0,0,0,0.1)]">
           <Card className="shadow-none border-0 sm:border sm:shadow-lg">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
