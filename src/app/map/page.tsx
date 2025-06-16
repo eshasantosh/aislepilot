@@ -66,12 +66,11 @@ export default function MapPage() {
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
     } finally {
-      setIsLoading(false);
+      setCategorizedList(listFromStorage); // Set state after try-catch-finally structure
+      setCheckedItems(checksFromStorage);
+      setItemQuantities(quantitiesFromStorage);
+      setIsLoading(false); // Ensure isLoading is set to false
     }
-
-    setCategorizedList(listFromStorage);
-    setCheckedItems(checksFromStorage);
-    setItemQuantities(quantitiesFromStorage);
   }, []);
 
   useEffect(() => {
@@ -191,7 +190,7 @@ export default function MapPage() {
         
         <AppHeader />
         
-        <div className="sticky top-0 z-20 bg-background pb-3 pt-1 shadow-md">
+        <div className="sticky top-0 z-20 bg-background pb-2 pt-1 shadow-md">
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
