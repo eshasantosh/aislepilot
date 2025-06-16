@@ -13,8 +13,10 @@ import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -215,12 +217,7 @@ export default function MapPage() {
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
           <div className="mb-6 w-full max-w-2xl mx-auto self-start"> 
-            <Link href="/plan" passHref>
-              <Button variant="outline" className="shadow-sm hover:shadow-md transition-shadow">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
+             {/* Back button is now part of CategorizedDisplay for sticky header */}
           </div>
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
@@ -271,7 +268,7 @@ export default function MapPage() {
 
         <Card className="mb-8 p-4 sm:p-6 shadow-lg">
           <CardContent className="p-0">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-row justify-between items-center gap-4">
               <div className="flex items-center">
                 <CreditCard className="mr-3 h-7 w-7 text-primary" />
                 <div>
@@ -283,7 +280,7 @@ export default function MapPage() {
               </div>
               <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
                     <ScanLine className="mr-2 h-4 w-4" />
                     Scan Barcode
                   </Button>
@@ -385,5 +382,4 @@ export default function MapPage() {
     </>
   );
 }
-
     
