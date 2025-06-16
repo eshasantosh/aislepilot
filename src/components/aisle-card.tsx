@@ -23,13 +23,13 @@ export function AisleCard({ aisleName, items, checkedItems, onItemToggle }: Aisl
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="flex flex-row items-center space-x-3 pb-3">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center space-x-3 p-3">
           <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
           <CardTitle className="font-headline text-xl capitalize">{aisleName}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
+        <CardContent className="p-3 pt-0 flex-grow">
+          <ul className="space-y-2">
             {items.sort().map((item, index) => (
               <motion.li
                 key={item}
