@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-// import Image from 'next/image'; // Removed as no longer used
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ export default function MapPage() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [itemQuantities, setItemQuantities] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [_currentYear, setCurrentYear] = useState<number | null>(null); // _ to avoid lint error
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
@@ -218,7 +217,7 @@ export default function MapPage() {
   if (isLoading && !categorizedList) {
     return (
       <>
-        <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
+        <main className="flex-grow flex flex-col items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
@@ -228,9 +227,9 @@ export default function MapPage() {
 
   return (
     <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 pt-8 pb-24">
+      <main className="flex-grow flex flex-col">
         
-        <div className="sticky top-0 z-20 py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
+        <div className="sticky top-0 z-20 py-2 px-4 md:px-6">
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
@@ -240,8 +239,8 @@ export default function MapPage() {
           />
         </div>
         
-        <section className="my-8">
-          <div className="rounded-md overflow-hidden border h-[500px]">
+        <section className="flex-grow flex flex-col">
+          <div className="flex-grow">
             <iframe
               src="https://maps.google.com/maps?q=directions%20from%20Times%20Square%2C%20New%20York%20to%20Empire%20State%20Building%2C%20New%20York&output=embed"
               width="100%"
@@ -254,11 +253,11 @@ export default function MapPage() {
               data-ai-hint="city street map"
             ></iframe>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">Map data © Google. Route for demonstration purposes.</p>
+          <p className="text-xs text-muted-foreground mt-2 text-center px-4 md:px-6 pb-2">Map data © Google. Route for demonstration purposes.</p>
         </section>
 
-        <div className="sticky bottom-0 z-30 pt-4 -mx-4 md:-mx-6 px-4 md:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-2px_rgba(0,0,0,0.1)]">
-          <Card className="shadow-none border-0 sm:border sm:shadow-lg">
+        <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6">
+          <Card className="shadow-none border-0 sm:border">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
                 <div className="flex items-center">
@@ -375,6 +374,7 @@ export default function MapPage() {
     
 
     
+
 
 
 
