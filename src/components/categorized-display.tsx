@@ -45,16 +45,16 @@ export function CategorizedDisplay({
 
   return (
     <div className={cn(
-      displayMode === "grid" ? "mt-10" : "", // No top margin for carousel mode, handled by sticky wrapper
-      "space-y-4" // Consistent spacing
+      displayMode === "grid" ? "mt-10" : "", 
+      "space-y-4" 
     )}>
-      <div className="relative flex items-center justify-center h-10"> {/* Container for title and button */}
+      <div className="relative flex items-center justify-center h-10"> 
         {backButton && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2">
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline text-center px-4"> {/* Added padding to h2 */}
+        <h2 className="text-2xl font-semibold font-headline text-center px-4"> 
           AislePilot
         </h2>
       </div>
@@ -65,7 +65,6 @@ export function CategorizedDisplay({
             align: "start",
             loop: sortedAisles.length > 1, 
           }}
-          // Removed max-w-md and mx-auto, as sticky wrapper handles width
           className="w-full" 
         >
           <CarouselContent className="-ml-1">
@@ -84,8 +83,8 @@ export function CategorizedDisplay({
           </CarouselContent>
           {sortedAisles.length > 1 && (
             <>
-              <CarouselPrevious />
-              <CarouselNext />
+              <CarouselPrevious className="hidden md:inline-flex" />
+              <CarouselNext className="hidden md:inline-flex" />
             </>
           )}
         </Carousel>
