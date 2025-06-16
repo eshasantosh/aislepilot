@@ -69,8 +69,8 @@ export function CategorizedDisplay({
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
-              <CarouselItem key={index} className="pl-1 md:basis-1/1 lg:basis-1/1">
-                <div className="p-1">
+              <CarouselItem key={index} className="pl-1 basis-auto"> {/* Changed basis here */}
+                <div className="p-1 h-full"> {/* Added h-full to allow AisleCard to take full height if needed */}
                   <AisleCard
                     aisleName={aisleName}
                     items={items}
@@ -104,3 +104,4 @@ export function CategorizedDisplay({
     </div>
   );
 }
+
