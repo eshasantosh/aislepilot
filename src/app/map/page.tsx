@@ -8,7 +8,7 @@ import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Loader2, ScanLine, Plus, Minus, CreditCard } from 'lucide-react';
+import { ArrowLeft, Loader2, ScanLine, Plus, Minus, CreditCard, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -233,7 +233,7 @@ export default function MapPage() {
     <>
       <main className="flex-grow container mx-auto px-4 md:px-6 pt-8 pb-24">
         
-        <div className="sticky top-0 z-20 bg-background py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
+        <div className="sticky top-0 z-20 py-2 shadow-md -mx-4 md:-mx-6 px-4 md:px-6">
           <CategorizedDisplay
             categorizedList={categorizedList}
             checkedItems={checkedItems}
@@ -376,3 +376,4 @@ export default function MapPage() {
     
 
     
+
