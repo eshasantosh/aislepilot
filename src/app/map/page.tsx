@@ -20,6 +20,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+const ITEM_PRICE_RS = 10;
+
 export default function MapPage() {
   const [categorizedList, setCategorizedList] = useState<CategorizeItemsOutput | null>(null);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
@@ -144,6 +146,13 @@ export default function MapPage() {
 
   const completedItems = getCompletedItems();
 
+  const calculateTotalPrice = () => {
+    return completedItems.reduce((total, item) => {
+      const quantity = itemQuantities[item] || 0; // Default to 0 if not found, though should be 1+
+      return total + (quantity * ITEM_PRICE_RS);
+    }, 0);
+  };
+
 
   if (isLoading && !categorizedList) {
     return (
@@ -237,41 +246,55 @@ export default function MapPage() {
             Shopping Cart
           </h2>
           {completedItems.length > 0 ? (
-            <ul className="space-y-2">
-              {completedItems.map(item => {
-                const quantity = itemQuantities[item] || 1;
-                return (
-                  <li 
-                    key={item} 
-                    className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex items-center justify-between"
-                  >
-                    <span>{item}</span>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-7 w-7" 
-                        onClick={() => handleDecreaseQuantity(item)}
-                        disabled={quantity <= 1}
-                        aria-label={`Decrease quantity of ${item}`}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-6 text-center font-medium">{quantity}</span>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-7 w-7"
-                        onClick={() => handleIncreaseQuantity(item)}
-                        aria-label={`Increase quantity of ${item}`}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <ul className="space-y-3">
+                {completedItems.map(item => {
+                  const quantity = itemQuantities[item] || 1;
+                  const subtotal = quantity * ITEM_PRICE_RS;
+                  return (
+                    <li 
+                      key={item} 
+                      className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <span className="font-medium flex-grow mb-2 sm:mb-0">{item}</span>
+                      <div className="flex items-center justify-between sm:justify-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-7 w-7" 
+                            onClick={() => handleDecreaseQuantity(item)}
+                            disabled={quantity <= 1}
+                            aria-label={`Decrease quantity of ${item}`}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-6 text-center font-medium">{quantity}</span>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-7 w-7"
+                            onClick={() => handleIncreaseQuantity(item)}
+                            aria-label={`Increase quantity of ${item}`}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <span className="text-sm text-muted-foreground w-20 text-right">
+                          Rs {subtotal.toFixed(2)}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Separator className="my-6" />
+              <div className="text-right">
+                <p className="text-lg font-semibold">
+                  Total: <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
+                </p>
+              </div>
+            </>
           ) : (
             <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
           )}
@@ -284,3 +307,4 @@ export default function MapPage() {
     </>
   );
 }
+
