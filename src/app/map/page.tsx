@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+// import Image from 'next/image'; // Removed as no longer used
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
@@ -241,18 +241,20 @@ export default function MapPage() {
         </div>
         
         <section className="my-8">
-          <div className="bg-muted rounded-md overflow-hidden border">
-            <Image
-              src="https://placehold.co/900x1600.png"
-              alt="Store Map Placeholder"
-              width={900}
-              height={1600}
-              className="w-full h-auto object-contain"
-              data-ai-hint="store layout supermarket plan"
-              priority
-            />
+          <div className="rounded-md overflow-hidden border h-[500px]">
+            <iframe
+              src="https://maps.google.com/maps?q=directions%20from%20Times%20Square%2C%20New%20York%20to%20Empire%20State%20Building%2C%20New%20York&output=embed"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Google Maps Route"
+              data-ai-hint="city street map"
+            ></iframe>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">Placeholder store map. Actual layout may vary.</p>
+          <p className="text-xs text-muted-foreground mt-2 text-center">Map data © Google. Route for demonstration purposes.</p>
         </section>
 
         <div className="sticky bottom-0 z-30 pt-4 -mx-4 md:-mx-6 px-4 md:px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-2px_rgba(0,0,0,0.1)]">
@@ -373,6 +375,7 @@ export default function MapPage() {
     
 
     
+
 
 
 
