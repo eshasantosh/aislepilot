@@ -8,7 +8,7 @@ import { AppHeader } from '@/components/app-header';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -23,6 +23,7 @@ import {
 export default function MapPage() {
   const [categorizedList, setCategorizedList] = useState<CategorizeItemsOutput | null>(null);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [itemQuantities, setItemQuantities] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
@@ -30,6 +31,7 @@ export default function MapPage() {
     setCurrentYear(new Date().getFullYear());
     let listFromStorage: CategorizeItemsOutput | null = null;
     let checksFromStorage: Record<string, boolean> = {};
+    let quantitiesFromStorage: Record<string, number> = {};
 
     try {
       const savedCategorizedList = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
@@ -49,34 +51,81 @@ export default function MapPage() {
           console.error("Error parsing checked items from localStorage on map page", parseError);
         }
       }
+      
+      const savedItemQuantities = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES);
+      if (savedItemQuantities) {
+        try {
+          quantitiesFromStorage = JSON.parse(savedItemQuantities);
+        } catch (parseError) {
+          console.error("Error parsing item quantities from localStorage on map page", parseError);
+        }
+      }
+
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
-      // Potentially set an error state here for the UI if needed
     } finally {
-      setIsLoading(false); // Ensure loading is set to false even if localStorage fails
+      setIsLoading(false);
     }
 
     setCategorizedList(listFromStorage);
     setCheckedItems(checksFromStorage);
-    // setIsLoading(false); // Moved to finally block
+    setItemQuantities(quantitiesFromStorage);
   }, []);
 
   useEffect(() => {
-    if (!isLoading && Object.keys(checkedItems).length > 0) { // Only save if there are checked items
+    if (!isLoading) { 
       try {
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
       } catch (storageAccessError) {
-        console.error("Error accessing localStorage on map page (write operation):", storageAccessError);
+        console.error("Error saving checked items to localStorage on map page:", storageAccessError);
       }
     }
   }, [checkedItems, isLoading]);
 
+  useEffect(() => {
+    if (!isLoading) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES, JSON.stringify(itemQuantities));
+      } catch (storageAccessError) {
+        console.error("Error saving item quantities to localStorage on map page:", storageAccessError);
+      }
+    }
+  }, [itemQuantities, isLoading]);
+
   const handleItemToggle = (itemName: string, _aisleName: string) => {
-    setCheckedItems((prev) => ({
+    setCheckedItems((prevChecked) => {
+      const isNowChecked = !prevChecked[itemName];
+      const newCheckedItems = {
+        ...prevChecked,
+        [itemName]: isNowChecked,
+      };
+
+      if (isNowChecked) {
+        setItemQuantities((prevQuantities) => {
+          if (!prevQuantities[itemName] || prevQuantities[itemName] === 0) {
+            return { ...prevQuantities, [itemName]: 1 };
+          }
+          return prevQuantities;
+        });
+      }
+      return newCheckedItems;
+    });
+  };
+
+  const handleIncreaseQuantity = (itemName: string) => {
+    setItemQuantities(prev => ({
       ...prev,
-      [itemName]: !prev[itemName],
+      [itemName]: (prev[itemName] || 0) + 1
     }));
   };
+
+  const handleDecreaseQuantity = (itemName: string) => {
+    setItemQuantities(prev => ({
+      ...prev,
+      [itemName]: Math.max(1, (prev[itemName] || 1) - 1)
+    }));
+  };
+
 
   const getCompletedItems = () => {
     if (!categorizedList || !categorizedList.categorizedAisles) {
@@ -100,7 +149,7 @@ export default function MapPage() {
     return (
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <AppHeader /> 
+          <AppHeader />
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Loading map and checklist...</p>
         </main>
@@ -129,7 +178,7 @@ export default function MapPage() {
           categorizedList={categorizedList}
           checkedItems={checkedItems}
           onItemToggle={handleItemToggle}
-          displayMode="carousel" 
+          displayMode="carousel"
         />
         
         <Separator className="my-8" />
@@ -189,14 +238,39 @@ export default function MapPage() {
           </h2>
           {completedItems.length > 0 ? (
             <ul className="space-y-2">
-              {completedItems.map(item => (
-                <li 
-                  key={item} 
-                  className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex items-center"
-                >
-                  <span>{item}</span>
-                </li>
-              ))}
+              {completedItems.map(item => {
+                const quantity = itemQuantities[item] || 1;
+                return (
+                  <li 
+                    key={item} 
+                    className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex items-center justify-between"
+                  >
+                    <span>{item}</span>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-7 w-7" 
+                        onClick={() => handleDecreaseQuantity(item)}
+                        disabled={quantity <= 1}
+                        aria-label={`Decrease quantity of ${item}`}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-6 text-center font-medium">{quantity}</span>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-7 w-7"
+                        onClick={() => handleIncreaseQuantity(item)}
+                        aria-label={`Increase quantity of ${item}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
@@ -205,9 +279,8 @@ export default function MapPage() {
 
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
+        <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
       </footer>
     </>
   );
 }
-
