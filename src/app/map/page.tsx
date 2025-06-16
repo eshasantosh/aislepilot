@@ -8,7 +8,7 @@ import { AppHeader } from '@/components/app-header';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Loader2, ScanLine } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, ScanLine, ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -51,15 +51,18 @@ export default function MapPage() {
       }
     } catch (storageAccessError) {
       console.error("Error accessing localStorage on map page (read operations):", storageAccessError);
+      // Potentially set an error state here for the UI if needed
+    } finally {
+      setIsLoading(false); // Ensure loading is set to false even if localStorage fails
     }
 
     setCategorizedList(listFromStorage);
     setCheckedItems(checksFromStorage);
-    setIsLoading(false);
+    // setIsLoading(false); // Moved to finally block
   }, []);
 
   useEffect(() => {
-    if (!isLoading) { 
+    if (!isLoading && Object.keys(checkedItems).length > 0) { // Only save if there are checked items
       try {
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
       } catch (storageAccessError) {
@@ -74,6 +77,24 @@ export default function MapPage() {
       [itemName]: !prev[itemName],
     }));
   };
+
+  const getCompletedItems = () => {
+    if (!categorizedList || !categorizedList.categorizedAisles) {
+      return [];
+    }
+    const completed: string[] = [];
+    categorizedList.categorizedAisles.forEach(aisle => {
+      aisle.items.forEach(item => {
+        if (checkedItems[item]) {
+          completed.push(item);
+        }
+      });
+    });
+    return completed.sort();
+  };
+
+  const completedItems = getCompletedItems();
+
 
   if (isLoading && !categorizedList) {
     return (
@@ -159,6 +180,29 @@ export default function MapPage() {
           </div>
         </section>
 
+        <Separator className="my-8" />
+
+        <section className="mb-8 p-4 sm:p-6 border bg-card rounded-lg shadow-lg">
+          <h2 className="text-xl sm:text-2xl font-semibold font-headline mb-4 flex items-center">
+            <ShoppingCart className="mr-2 h-6 w-6 text-primary" />
+            Shopping Cart
+          </h2>
+          {completedItems.length > 0 ? (
+            <ul className="space-y-2">
+              {completedItems.map(item => (
+                <li 
+                  key={item} 
+                  className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex items-center"
+                >
+                  <span className="line-through text-muted-foreground/80">{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground italic">No items checked off yet. Start shopping!</p>
+          )}
+        </section>
+
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
@@ -166,3 +210,4 @@ export default function MapPage() {
     </>
   );
 }
+
