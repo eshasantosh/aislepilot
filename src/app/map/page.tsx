@@ -194,7 +194,7 @@ export default function MapPage() {
                   key={item} 
                   className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex items-center"
                 >
-                  <span className="line-through text-muted-foreground/80">{item}</span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
