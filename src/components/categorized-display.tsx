@@ -48,13 +48,13 @@ export function CategorizedDisplay({
       displayMode === "grid" ? "mt-10" : "", 
       "space-y-4" 
     )}>
-      <div className="relative flex items-center justify-center h-10"> 
+      <div className="flex items-center h-10 gap-3"> 
         {backButton && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+          <div>
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline text-center px-4"> 
+        <h2 className="text-2xl font-semibold font-headline"> 
           AislePilot
         </h2>
       </div>
@@ -69,8 +69,8 @@ export function CategorizedDisplay({
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
-              <CarouselItem key={index} className="pl-1 basis-auto"> {/* Changed basis here */}
-                <div className="p-1 h-full"> {/* Added h-full to allow AisleCard to take full height if needed */}
+              <CarouselItem key={index} className="pl-1 basis-auto">
+                <div className="p-1 h-full">
                   <AisleCard
                     aisleName={aisleName}
                     items={items}
@@ -104,4 +104,3 @@ export function CategorizedDisplay({
     </div>
   );
 }
-
