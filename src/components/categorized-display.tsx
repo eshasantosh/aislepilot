@@ -45,8 +45,7 @@ export function CategorizedDisplay({
 
   return (
     <div className={cn(
-      displayMode === "grid" ? "mt-10" : "",
-      "space-y-4"
+      "space-y-4" // Removed conditional mt-10
     )}>
       <div className="relative flex items-center justify-center h-10">
         {backButton && (
@@ -69,7 +68,7 @@ export function CategorizedDisplay({
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
-              <CarouselItem key={index} className="pl-1 basis-auto">
+              <CarouselItem key={index} className="pl-1 basis-auto h-full">
                 <div className="p-1 h-full">
                   <AisleCard
                     aisleName={aisleName}
