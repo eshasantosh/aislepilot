@@ -11,13 +11,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 
-// Helper to extract unique item names from the AI's categorized list for comparison
-const getUniqueItemNamesFromAiOutput = (list: CategorizeItemsOutput | null): string => {
-  if (!list || !list.categorizedAisles) return '';
-  const allItems = list.categorizedAisles.flatMap(aisle => aisle.items.map(item => item.name.trim().toLowerCase()));
-  return [...new Set(allItems)].sort().join(',');
-};
-
 
 export default function PlanPage() {
   const [categorizedListWithSuggestions, setCategorizedListWithSuggestions] = useState<CategorizeItemsOutput | null>(null);
@@ -80,29 +73,36 @@ export default function PlanPage() {
       return;
     }
 
-    const savedCategorizedList = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-    const savedCheckedItems = localStorage.getItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
-    const savedItemQuantities = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES);
-    const savedUserAddedSuggestions = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS);
+    const savedCategorizedListJSON = localStorage.getItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
+    const savedCheckedItemsJSON = localStorage.getItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+    const savedItemQuantitiesJSON = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES);
+    const savedUserAddedSuggestionsJSON = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS);
 
-    let listToSet: CategorizeItemsOutput | null = null;
-    let categorizationNeeded = true;
+    let needsFreshCategorization = true;
+    let parsedListForCache: CategorizeItemsOutput | null = null;
 
-    if (savedCategorizedList) {
+    if (savedCategorizedListJSON) {
       try {
-        const parsedList = JSON.parse(savedCategorizedList) as CategorizeItemsOutput;
-        // Compare based on original user input to decide if re-categorization is needed
-        const userItemsFromParsedList = parsedList.categorizedAisles
-            .flatMap(aisle => aisle.items.filter(item => !item.isSuggestion))
+        const parsedList = JSON.parse(savedCategorizedListJSON) as CategorizeItemsOutput;
+        // Basic validation for parsedList structure
+        if (parsedList && Array.isArray(parsedList.categorizedAisles)) {
+          const userItemsFromParsedList = parsedList.categorizedAisles
+            .flatMap(aisle => aisle.items?.filter(item => item && !item.isSuggestion && typeof item.name === 'string') || []) // Ensure item and item.name are valid
             .map(item => item.name.trim().toLowerCase())
             .sort()
             .join(',');
-        const currentInputItems = itemsInputFromStorage.split(',').map(i => i.trim().toLowerCase()).sort().join(',');
+          const currentInputItems = itemsInputFromStorage.split(',')
+            .map(i => i.trim().toLowerCase())
+            .filter(Boolean) // Remove empty strings that might result from trailing commas
+            .sort()
+            .join(',');
 
-        if (userItemsFromParsedList === currentInputItems) {
-          listToSet = parsedList;
-          categorizationNeeded = false;
-          setIsLoading(false); 
+          if (userItemsFromParsedList === currentInputItems) {
+            needsFreshCategorization = false;
+            parsedListForCache = parsedList;
+          }
+        } else {
+           localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST); // Invalid structure
         }
       } catch (e) {
         console.error("Error parsing categorized list from localStorage on plan page, will re-categorize", e);
@@ -110,38 +110,45 @@ export default function PlanPage() {
       }
     }
     
-    if (listToSet) {
-        setCategorizedListWithSuggestions(listToSet);
-    }
-
-    if (categorizationNeeded) {
+    if (needsFreshCategorization) {
+      // If base list changed or cache is invalid, clear suggestions from any *previous* list.
+      setUserAddedSuggestions(new Set());
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS);
       performCategorization(itemsInputFromStorage);
+    } else if (parsedListForCache) {
+      // Using cached list for the SAME user input. Load related states.
+      setCategorizedListWithSuggestions(parsedListForCache);
+      if (savedUserAddedSuggestionsJSON) {
+        try {
+          const parsedSuggestions = JSON.parse(savedUserAddedSuggestionsJSON);
+          setUserAddedSuggestions(new Set(parsedSuggestions));
+        } catch (e) { 
+          console.error("Error parsing added suggestions", e); 
+          localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS); 
+        }
+      }
+      setIsLoading(false); // Using cache, so AI call is skipped
     }
 
-    if (savedCheckedItems) {
+    // Load checked items and quantities. Stale entries for items no longer in the list won't cause issues.
+    if (savedCheckedItemsJSON) {
       try {
-        setCheckedItems(JSON.parse(savedCheckedItems));
+        setCheckedItems(JSON.parse(savedCheckedItemsJSON));
       } catch (e) { console.error("Error parsing checked items", e); localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS); }
     }
-
-    if (savedItemQuantities) {
+    if (savedItemQuantitiesJSON) {
       try {
-        setItemQuantities(JSON.parse(savedItemQuantities));
+        setItemQuantities(JSON.parse(savedItemQuantitiesJSON));
       } catch (e) { console.error("Error parsing item quantities", e); localStorage.removeItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES); }
-    }
-
-    if (savedUserAddedSuggestions) {
-        try {
-            const parsedSuggestions = JSON.parse(savedUserAddedSuggestions);
-            setUserAddedSuggestions(new Set(parsedSuggestions));
-        } catch (e) { console.error("Error parsing added suggestions", e); localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS); }
     }
 
   }, [router, toast, performCategorization]);
 
 
   useEffect(() => {
-    if (!isLoading) { // Only save when not initially loading
+    // Save checkedItems, itemQuantities, and userAddedSuggestions when they change,
+    // but only if not in the initial loading phase for the main list.
+    if (!isLoading) { 
         localStorage.setItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS, JSON.stringify(checkedItems));
     }
   }, [checkedItems, isLoading]);
@@ -153,7 +160,7 @@ export default function PlanPage() {
   }, [itemQuantities, isLoading]);
 
   useEffect(() => {
-    if(!isLoading) {
+    if(!isLoading) { // Also ensure not loading for suggestions when saving
         localStorage.setItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS, JSON.stringify(Array.from(userAddedSuggestions)));
     }
   }, [userAddedSuggestions, isLoading]);
@@ -161,22 +168,25 @@ export default function PlanPage() {
 
   const handleItemInteraction = useCallback((itemName: string, _aisleName: string, isInitialSuggestion: boolean) => {
     if (isInitialSuggestion && !userAddedSuggestions.has(itemName)) {
-      // Adding a new suggestion
-      setUserAddedSuggestions(prev => new Set(prev).add(itemName));
+      // Adding a new suggestion (clicked the PLUS icon)
+      setUserAddedSuggestions(prev => {
+        const newSet = new Set(prev); // Create new Set for immutable update
+        newSet.add(itemName);
+        return newSet;
+      });
       setItemQuantities(prevQuantities => {
+        // Set quantity to 1 if not already set or 0
         if (!prevQuantities[itemName] || prevQuantities[itemName] === 0) {
           return { ...prevQuantities, [itemName]: 1 };
         }
         return prevQuantities;
       });
-      // Optional: Automatically check the item when added? For now, no. Let user check it.
-      // setCheckedItems(prev => ({...prev, [itemName]: true}));
       toast({
         title: "Item Added",
         description: `"${itemName}" has been added to your list.`,
       });
     } else {
-      // Toggling an existing item (user's or already added suggestion)
+      // Toggling an existing item's checkbox (user's original item or an already-added suggestion)
       setCheckedItems(prevChecked => {
         const isNowChecked = !prevChecked[itemName];
         const newCheckedItems = {
@@ -184,14 +194,16 @@ export default function PlanPage() {
           [itemName]: isNowChecked,
         };
 
-        if (isNowChecked) {
+        if (isNowChecked) { // If item is being checked
           setItemQuantities(prevQuantities => {
+            // Set quantity to 1 if not already set or 0
             if (!prevQuantities[itemName] || prevQuantities[itemName] === 0) {
               return { ...prevQuantities, [itemName]: 1 };
             }
             return prevQuantities;
           });
         }
+        // If item is being unchecked, quantity remains as is.
         return newCheckedItems;
       });
     }
@@ -211,7 +223,7 @@ export default function PlanPage() {
       <>
         <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
           <div className="my-6 self-start">
-             {backButtonElement}
+             {/* This is removed as backButton is now part of CategorizedDisplay header */}
           </div>
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
           <p className="text-muted-foreground">Organizing your grocery aisles & finding suggestions...</p>
@@ -249,7 +261,7 @@ export default function PlanPage() {
         )}
          
          {!isLoading && !hasActualContent && (
-           <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+           <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
              <p>No items were categorized, or no suggestions found. Please check your input or try again.</p>
            </div>
          )}
@@ -261,3 +273,4 @@ export default function PlanPage() {
     </>
   );
 }
+
