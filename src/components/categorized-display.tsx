@@ -35,17 +35,17 @@ export function CategorizedDisplay({
   if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
     return (
       <>
-        {backButton && ( /* Show back button even if list is empty */
-          <div className="relative flex items-center justify-center h-10 mb-4">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
-              {backButton}
-            </div>
-            <h2 className="text-2xl font-semibold font-headline">
+        <div className="relative flex items-center justify-center h-10 mb-4">
+            {backButton && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
+                {backButton}
+              </div>
+            )}
+            <h2 className="text-2xl font-semibold font-headline text-background">
               AislePilot
             </h2>
-          </div>
-        )}
-        <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+        </div>
+        <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
           <PackageSearch className="h-16 w-16 mb-4" />
           <p className="text-xl font-medium">Your categorized list will appear here.</p>
           <p>Enter some items on the main page and click "Categorize Items" to get started!</p>
@@ -66,7 +66,7 @@ export function CategorizedDisplay({
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline">
+        <h2 className="text-2xl font-semibold font-headline text-background">
           AislePilot
         </h2>
       </div>
@@ -81,8 +81,8 @@ export function CategorizedDisplay({
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
-              <CarouselItem key={`${aisleName}-${index}`} className="pl-1 basis-auto h-full">
-                <div className="p-1 h-full">
+              <CarouselItem key={`${aisleName}-${index}`} className="pl-1 basis-auto">
+                <div className="p-1">
                   <AisleCard
                     aisleName={aisleName}
                     itemsInAisle={items} // items are {name, isSuggestion}
