@@ -68,7 +68,7 @@ export function AisleCard({ aisleName, itemsInAisle, checkedItems, userAddedSugg
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-primary hover:text-primary/80"
+                      className="h-6 w-6 text-accent hover:text-accent/80"
                       onClick={() => onItemInteraction(itemName, aisleName, true)}
                       aria-label={`Add ${itemName} to list`}
                     >
@@ -86,8 +86,12 @@ export function AisleCard({ aisleName, itemsInAisle, checkedItems, userAddedSugg
                     htmlFor={isInitialSuggestionDisplay ? undefined : itemID} // Only link label if checkbox exists
                     id={`${itemID}-label`}
                     className={`text-base flex-1 ${
-                      !isInitialSuggestionDisplay && checkedItems[itemName] ? "line-through text-muted-foreground" : ""
-                    } ${isInitialSuggestionDisplay ? "cursor-default" : "cursor-pointer"}`}
+                      isInitialSuggestionDisplay
+                        ? 'text-accent cursor-default'
+                        : checkedItems[itemName]
+                          ? 'line-through text-muted-foreground cursor-pointer'
+                          : 'cursor-pointer'
+                    }`}
                     onClick={isInitialSuggestionDisplay ? (e) => { 
                       e.preventDefault(); // Prevent any label click if it's a suggestion button
                       onItemInteraction(itemName, aisleName, true);
