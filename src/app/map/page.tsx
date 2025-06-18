@@ -249,11 +249,11 @@ export default function MapPage() {
                   </DialogContent>
                 </Dialog>
               </div>
-              <Separator className="my-4" />
+              <Separator className="my-2" />
               <Accordion type="single" collapsible className="w-full" defaultValue="cart-items">
                 <AccordionItem value="cart-items" className="border-b-0">
                   <AccordionTrigger className="text-xl sm:text-2xl font-semibold font-headline hover:no-underline"> Shopping Cart Items </AccordionTrigger>
-                  <AccordionContent className="pt-4">
+                  <AccordionContent className="pt-2">
                     {completedItemsInCart.length > 0 ? (
                       <>
                         <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
