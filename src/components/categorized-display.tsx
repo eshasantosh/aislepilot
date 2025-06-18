@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { CategorizeItemsOutput } from "@/ai/flows/categorize-items";
+import type { CategorizeItemsOutput } from "@/ai/flows/categorize-items"; // Output now includes {name, isSuggestion}
 import { AisleCard } from "./aisle-card";
 import { PackageSearch } from "lucide-react";
 import {
@@ -15,9 +15,10 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from 'react';
 
 interface CategorizedDisplayProps {
-  categorizedList: CategorizeItemsOutput | null;
+  categorizedList: CategorizeItemsOutput | null; // Contains items with {name, isSuggestion}
   checkedItems: Record<string, boolean>;
-  onItemToggle: (itemName: string, aisleName: string) => void;
+  userAddedSuggestions: Set<string>; // To know which suggestions are "activated"
+  onItemInteraction: (itemName: string, aisleName: string, isInitialSuggestion: boolean) => void; // Unified handler
   displayMode?: "carousel" | "grid";
   backButton?: ReactNode;
 }
@@ -25,17 +26,31 @@ interface CategorizedDisplayProps {
 export function CategorizedDisplay({
   categorizedList,
   checkedItems,
-  onItemToggle,
+  userAddedSuggestions,
+  onItemInteraction,
   displayMode = "grid",
   backButton,
 }: CategorizedDisplayProps) {
+
   if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
     return (
-      <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
-        <PackageSearch className="h-16 w-16 mb-4" />
-        <p className="text-xl font-medium">Your categorized list will appear here.</p>
-        <p>Enter some items on the main page and click "Categorize Items" to get started!</p>
-      </div>
+      <>
+        {backButton && ( /* Show back button even if list is empty */
+          <div className="relative flex items-center justify-center h-10 mb-4">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
+              {backButton}
+            </div>
+            <h2 className="text-2xl font-semibold font-headline">
+              AislePilot
+            </h2>
+          </div>
+        )}
+        <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+          <PackageSearch className="h-16 w-16 mb-4" />
+          <p className="text-xl font-medium">Your categorized list will appear here.</p>
+          <p>Enter some items on the main page and click "Categorize Items" to get started!</p>
+        </div>
+      </>
     );
   }
 
@@ -44,12 +59,10 @@ export function CategorizedDisplay({
   );
 
   return (
-    <div className={cn(
-      "space-y-4" // Removed conditional mt-10
-    )}>
+    <div className={cn("space-y-4")}>
       <div className="relative flex items-center justify-center h-10">
         {backButton && (
-          <div className="absolute left-0 top-0 bottom-0 flex items-center">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
             {backButton}
           </div>
         )}
@@ -68,13 +81,14 @@ export function CategorizedDisplay({
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
-              <CarouselItem key={index} className="pl-1 basis-auto h-full">
+              <CarouselItem key={`${aisleName}-${index}`} className="pl-1 basis-auto h-full">
                 <div className="p-1 h-full">
                   <AisleCard
                     aisleName={aisleName}
-                    items={items}
+                    itemsInAisle={items} // items are {name, isSuggestion}
                     checkedItems={checkedItems}
-                    onItemToggle={onItemToggle}
+                    userAddedSuggestions={userAddedSuggestions}
+                    onItemInteraction={onItemInteraction}
                   />
                 </div>
               </CarouselItem>
@@ -91,11 +105,12 @@ export function CategorizedDisplay({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedAisles.map(({ aisleName, items }, index) => (
             <AisleCard
-              key={index}
+              key={`${aisleName}-${index}-grid`}
               aisleName={aisleName}
-              items={items}
+              itemsInAisle={items} // items are {name, isSuggestion}
               checkedItems={checkedItems}
-              onItemToggle={onItemToggle}
+              userAddedSuggestions={userAddedSuggestions}
+              onItemInteraction={onItemInteraction}
             />
           ))}
         </div>
