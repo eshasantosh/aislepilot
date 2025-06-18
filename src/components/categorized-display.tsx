@@ -26,7 +26,7 @@ export function CategorizedDisplay({
   categorizedList,
   checkedItems,
   onItemToggle,
-  displayMode = "grid", 
+  displayMode = "grid",
   backButton,
 }: CategorizedDisplayProps) {
   if (!categorizedList || !categorizedList.categorizedAisles || categorizedList.categorizedAisles.length === 0) {
@@ -45,16 +45,16 @@ export function CategorizedDisplay({
 
   return (
     <div className={cn(
-      displayMode === "grid" ? "mt-10" : "", 
-      "space-y-4" 
+      displayMode === "grid" ? "mt-10" : "",
+      "space-y-4"
     )}>
-      <div className="flex items-center h-10 gap-3"> 
+      <div className="relative flex items-center justify-center h-10">
         {backButton && (
-          <div>
+          <div className="absolute left-0 top-0 bottom-0 flex items-center">
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline"> 
+        <h2 className="text-2xl font-semibold font-headline">
           AislePilot
         </h2>
       </div>
@@ -63,9 +63,9 @@ export function CategorizedDisplay({
         <Carousel
           opts={{
             align: "start",
-            loop: sortedAisles.length > 1, 
+            loop: sortedAisles.length > 1,
           }}
-          className="w-full" 
+          className="w-full"
         >
           <CarouselContent className="-ml-1">
             {sortedAisles.map(({ aisleName, items }, index) => (
