@@ -21,13 +21,6 @@ export default function Home() {
     const savedItemsInput = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT);
     if (savedItemsInput) setItemsInput(savedItemsInput);
 
-    // Clear categorized list and checked items from local storage if user is back on the main input page
-    // to ensure a fresh start for the /plan page unless they explicitly navigate back and forth.
-    // This can be adjusted based on desired UX for persistence.
-    // localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
-    // localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
-
-
   }, []);
 
   useEffect(() => {
@@ -44,8 +37,10 @@ export default function Home() {
   const handleClearList = () => {
     setItemsInput('');
     localStorage.removeItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT);
-    localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST); // Also clear categorized list
-    localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS); // and checked items
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CATEGORIZED_LIST);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CHECKED_ITEMS);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.ITEM_QUANTITIES);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.USER_ADDED_SUGGESTIONS); // Clear added suggestions
     toast({
       title: "List Cleared",
       description: "Your grocery list input has been cleared.",
@@ -60,7 +55,7 @@ export default function Home() {
           <GroceryForm
             onSubmitItems={handleFormSubmit}
             onClearList={handleClearList}
-            isLoading={false} // isLoading is now managed on /plan page
+            isLoading={false}
             initialItems={itemsInput}
           />
         </div>
