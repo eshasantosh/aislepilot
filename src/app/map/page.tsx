@@ -7,7 +7,7 @@ import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Loader2, ScanLine, Plus, Minus, CreditCard } from 'lucide-react';
+import { ArrowLeft, Loader2, ScanLine, Plus, Minus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -264,7 +264,6 @@ export default function MapPage() {
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
                 <div className="flex items-center">
-                  <CreditCard className="mr-3 h-7 w-7 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Current Cart Total</p>
                     <p className="text-2xl font-semibold font-headline text-primary">
