@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { CategorizeItemsOutput } from "@/ai/flows/categorize-items"; // Output now includes {name, isSuggestion}
@@ -41,7 +40,7 @@ export function CategorizedDisplay({
                 {backButton}
               </div>
             )}
-            <h2 className="text-2xl font-semibold font-headline text-background">
+            <h2 className="text-2xl font-semibold font-headline text-primary">
               AislePilot
             </h2>
         </div>
@@ -66,7 +65,7 @@ export function CategorizedDisplay({
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline text-background">
+        <h2 className="text-2xl font-semibold font-headline text-primary">
           AislePilot
         </h2>
       </div>
