@@ -196,7 +196,7 @@ export default function MapPage() {
         <div className="absolute inset-0 z-0">
           <iframe
             src="https://maps.google.com/maps?q=Walmart%2C%20Dunvale%2C%20Houston&output=embed"
-            className="w-full h-full dark:invert-[1] dark:hue-rotate-[180deg] dark:filter dark:contrast-[0.9] dark:brightness-[0.9]"
+            className="w-full h-full"
             style={{ border: 0 }}
             allowFullScreen
             loading="lazy"
