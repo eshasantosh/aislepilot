@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card } from "@/components/ui/card";
@@ -54,7 +53,7 @@ export function AisleCard({ aisleName, itemsInAisle, checkedItems, userAddedSugg
             <AccordionTrigger className="w-full hover:no-underline p-3 focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-t-lg data-[state=open]:rounded-b-none">
               <div className="flex items-center space-x-3">
                 <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
-                <span className="font-headline text-xl capitalize text-card-foreground">{aisleName}</span> 
+                <span className="font-headline text-lg capitalize text-card-foreground">{aisleName}</span> 
               </div>
             </AccordionTrigger>
 
