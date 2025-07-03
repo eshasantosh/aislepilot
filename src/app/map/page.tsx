@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -220,7 +221,7 @@ export default function MapPage() {
         <div className="flex-grow"></div>
 
         <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6">
-          <Card className="shadow-none border-0 sm:border bg-background/60 dark:bg-background/50 backdrop-blur-md border-border/30 shadow-xl">
+          <Card className="shadow-lg">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
                 <div className="flex items-center">
