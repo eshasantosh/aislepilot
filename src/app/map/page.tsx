@@ -3,8 +3,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { GoogleMap, useJsApiLoader, Polyline } from '@react-google-maps/api';
 import { CategorizedDisplay } from '@/components/categorized-display';
-import type { CategorizeItemsOutput, CategorizeItemsInput } from '@/ai/flows/categorize-items'; // CategorizeItemsInput might not be needed here
+import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Loader2, ScanLine, Plus, Minus } from 'lucide-react';
@@ -26,9 +27,105 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
+import { findOptimalPath } from '@/lib/pathfinding';
+import { aisleToPointName } from '@/lib/store-graph';
 
 const ITEM_PRICE_RS = 10;
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
+
+const mapCenter = {
+  lat: 29.7355,
+  lng: -95.5117,
+};
+
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: true,
+  styles: [ // Optional: Style the map for better visibility if needed
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: "#263c3f" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#6b9a76" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#38414e" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#212a37" }],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#9ca5b3" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#746855" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#1f2835" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#f3d19c" }],
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: "#2f3948" }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#17263c" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#515c6d" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#17263c" }],
+    },
+  ]
+};
 
 export default function MapPage() {
   const [displayListForMap, setDisplayListForMap] = useState<CategorizeItemsOutput | null>(null);
@@ -39,7 +136,12 @@ export default function MapPage() {
   const [_currentYear, setCurrentYear] = useState<number | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [shoppingPath, setShoppingPath] = useState<google.maps.LatLngLiteral[]>([]);
   const { toast } = useToast();
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+  });
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -71,6 +173,8 @@ export default function MapPage() {
 
     if (categorizedListFromAI && categorizedListFromAI.categorizedAisles) {
       const processedListForMap: CategorizeItemsOutput = { categorizedAisles: [] };
+      const requiredAisles = new Set<string>();
+
       categorizedListFromAI.categorizedAisles.forEach(aisle => {
         const itemsForThisAisleOnMap = aisle.items.filter(item => {
           return !item.isSuggestion || localUserAddedSuggestions.has(item.name);
@@ -79,11 +183,29 @@ export default function MapPage() {
         if (itemsForThisAisleOnMap.length > 0) {
           processedListForMap.categorizedAisles.push({
             aisleName: aisle.aisleName,
-            items: itemsForThisAisleOnMap, // items still {name, isSuggestion} for AisleCard consistency
+            items: itemsForThisAisleOnMap,
           });
+          requiredAisles.add(aisle.aisleName);
         }
       });
       setDisplayListForMap(processedListForMap);
+
+      // --- Pathfinding Logic ---
+      const requiredPoints = Array.from(requiredAisles)
+        .map(aisle => aisleToPointName[aisle.toLowerCase()])
+        .filter(point => point); // Filter out any aisles not in our graph
+
+      // Remove duplicates and ensure J (start/end) is included
+      const uniquePoints = Array.from(new Set(requiredPoints));
+
+      if (uniquePoints.length > 0) {
+        const { pathCoords } = findOptimalPath(uniquePoints);
+        setShoppingPath(pathCoords);
+      } else {
+        // If no items, path is just to the door and back (or empty)
+        setShoppingPath([]);
+      }
+
     } else {
       setDisplayListForMap({ categorizedAisles: [] });
     }
@@ -182,6 +304,43 @@ export default function MapPage() {
       </Button>
     </Link>
   );
+  
+  const renderMap = () => {
+    if (loadError) return <div className="w-full h-full flex items-center justify-center bg-destructive text-destructive-foreground">Error loading maps. Please check your API key.</div>;
+    if (!isLoaded) return <div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+
+    return (
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={mapCenter}
+        zoom={18}
+        options={mapOptions}
+      >
+        {shoppingPath.length > 0 && (
+          <Polyline
+            path={shoppingPath}
+            options={{
+              strokeColor: '#FFC107', // An accent color for the path
+              strokeOpacity: 0.8,
+              strokeWeight: 4,
+              icons: [
+                {
+                  icon: {
+                    path: 'M 0,-1 0,1',
+                    strokeOpacity: 1,
+                    scale: 3,
+                  },
+                  offset: '0',
+                  repeat: '20px',
+                },
+              ],
+            }}
+          />
+        )}
+      </GoogleMap>
+    );
+  };
+
 
   if (isLoading && !displayListForMap) {
     return (
@@ -195,24 +354,15 @@ export default function MapPage() {
   return (
     <main className="relative flex-grow flex flex-col overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <iframe
-            src="https://maps.google.com/maps?q=Walmart%2C%20Dunvale%2C%20Houston&output=embed"
-            className="w-full h-full"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Google Maps Route"
-            data-ai-hint="city street map"
-          ></iframe>
+          {renderMap()}
         </div>
 
         <div className="sticky top-0 z-20 py-2 px-4 md:px-6">
           <CategorizedDisplay
-            categorizedList={displayListForMap} // Contains only items to be displayed on map
+            categorizedList={displayListForMap}
             checkedItems={checkedItems}
-            onItemInteraction={handleItemInteractionOnMap} // All items here are effectively non-suggestions for interaction purposes
-            userAddedSuggestions={userAddedSuggestions} // Pass this to correctly render items that were suggestions
+            onItemInteraction={handleItemInteractionOnMap}
+            userAddedSuggestions={userAddedSuggestions}
             displayMode="carousel"
             backButton={backButtonElement}
           />
