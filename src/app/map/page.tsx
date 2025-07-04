@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { GoogleMap, useJsApiLoader, Polyline } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/api';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { findOptimalPath } from '@/lib/pathfinding';
-import { aisleToPointName } from '@/lib/store-graph';
+import { aisleToPointName, points } from '@/lib/store-graph';
+import type { PointName } from '@/lib/store-graph';
 
 const ITEM_PRICE_RS = 10;
 
@@ -45,86 +46,26 @@ const mapCenter = {
 const mapOptions = {
   disableDefaultUI: true,
   zoomControl: true,
-  styles: [ // Optional: Style the map for better visibility if needed
-    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-    {
-      featureType: "administrative.locality",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
-    {
-      featureType: "poi",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
-    {
-      featureType: "poi.park",
-      elementType: "geometry",
-      stylers: [{ color: "#263c3f" }],
-    },
-    {
-      featureType: "poi.park",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#6b9a76" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: "#38414e" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#212a37" }],
-    },
-    {
-      featureType: "road",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#9ca5b3" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry",
-      stylers: [{ color: "#746855" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#1f2835" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#f3d19c" }],
-    },
-    {
-      featureType: "transit",
-      elementType: "geometry",
-      stylers: [{ color: "#2f3948" }],
-    },
-    {
-      featureType: "transit.station",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#17263c" }],
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#515c6d" }],
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.stroke",
-      stylers: [{ color: "#17263c" }],
-    },
-  ]
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+  ],
 };
 
 export default function MapPage() {
@@ -136,7 +77,13 @@ export default function MapPage() {
   const [_currentYear, setCurrentYear] = useState<number | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Pathfinding states
   const [shoppingPath, setShoppingPath] = useState<google.maps.LatLngLiteral[]>([]);
+  const [pathSegments, setPathSegments] = useState<google.maps.LatLngLiteral[][]>([]);
+  const [orderedAisles, setOrderedAisles] = useState<PointName[]>([]);
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
+
   const { toast } = useToast();
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -173,7 +120,7 @@ export default function MapPage() {
 
     if (categorizedListFromAI && categorizedListFromAI.categorizedAisles) {
       const processedListForMap: CategorizeItemsOutput = { categorizedAisles: [] };
-      const requiredAisles = new Set<string>();
+      const requiredAislesForPath = new Set<string>();
 
       categorizedListFromAI.categorizedAisles.forEach(aisle => {
         const itemsForThisAisleOnMap = aisle.items.filter(item => {
@@ -185,24 +132,31 @@ export default function MapPage() {
             aisleName: aisle.aisleName,
             items: itemsForThisAisleOnMap,
           });
-          requiredAisles.add(aisle.aisleName);
+          requiredAislesForPath.add(aisle.aisleName);
         }
       });
-      setDisplayListForMap(processedListForMap);
-
-      // --- Pathfinding Logic ---
-      const requiredPoints = Array.from(requiredAisles)
+      
+      const requiredPoints = Array.from(requiredAislesForPath)
         .map(aisle => aisleToPointName[aisle.toLowerCase()])
-        .filter(point => point); // Filter out any aisles not in our graph
+        .filter(point => point);
 
-      // Remove duplicates and ensure J (start/end) is included
       const uniquePoints = Array.from(new Set(requiredPoints));
 
       if (uniquePoints.length > 0) {
-        const { pathCoords } = findOptimalPath(uniquePoints);
+        const { pathCoords, visitOrder, pathSegmentsCoords } = findOptimalPath(uniquePoints);
         setShoppingPath(pathCoords);
+        setPathSegments(pathSegmentsCoords);
+        setOrderedAisles(visitOrder);
+        
+        // Sort the display list based on the optimal path
+        const shoppingOrder = visitOrder.map(pointName => points[pointName].aisle).filter(Boolean);
+        const sortedAisles = [...processedListForMap.categorizedAisles].sort((a, b) => {
+          return shoppingOrder.indexOf(a.aisleName) - shoppingOrder.indexOf(b.aisleName);
+        });
+        setDisplayListForMap({ categorizedAisles: sortedAisles });
+
       } else {
-        // If no items, path is just to the door and back (or empty)
+        setDisplayListForMap(processedListForMap); // Display empty or whatever was processed
         setShoppingPath([]);
       }
 
@@ -214,6 +168,41 @@ export default function MapPage() {
     setItemQuantities(quantitiesFromStorage);
     setIsLoading(false); 
   }, [toast]);
+
+  // Effect to update the current path segment based on checked items
+  useEffect(() => {
+    if (!orderedAisles.length || !displayListForMap) return;
+
+    // Get the sequence of aisles we need to shop at (excluding start/end points)
+    const shoppingAisles = orderedAisles
+      .slice(1, -1) // Remove J (start) and J (end)
+      .map(pointName => points[pointName].aisle?.toLowerCase());
+
+    let nextIncompleteAisleIdx = -1;
+
+    for (let i = 0; i < shoppingAisles.length; i++) {
+      const aisleNameLower = shoppingAisles[i];
+      const aisleData = displayListForMap.categorizedAisles.find(a => a.aisleName.toLowerCase() === aisleNameLower);
+      
+      if (!aisleData) continue;
+
+      const allItemsInAisleChecked = aisleData.items.every(item => checkedItems[item.name]);
+
+      if (!allItemsInAisleChecked) {
+        nextIncompleteAisleIdx = i;
+        break;
+      }
+    }
+    
+    if (nextIncompleteAisleIdx === -1) {
+      // All items are checked, highlight the last segment (path to checkout)
+      setCurrentSegmentIndex(pathSegments.length - 1);
+    } else {
+      setCurrentSegmentIndex(nextIncompleteAisleIdx);
+    }
+
+  }, [checkedItems, orderedAisles, displayListForMap, pathSegments.length]);
+
 
   // Persist checkedItems and itemQuantities (userAddedSuggestions is persisted on plan page)
   useEffect(() => {
@@ -309,6 +298,11 @@ export default function MapPage() {
     if (loadError) return <div className="w-full h-full flex items-center justify-center bg-destructive text-destructive-foreground">Error loading maps. Please check your API key.</div>;
     if (!isLoaded) return <div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
+    const highlightedSegment = pathSegments[currentSegmentIndex];
+    const upcomingAislePointName = orderedAisles[currentSegmentIndex + 1];
+    const markerPosition = upcomingAislePointName ? points[upcomingAislePointName].coords : null;
+
+
     return (
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
@@ -317,25 +311,33 @@ export default function MapPage() {
         options={mapOptions}
       >
         {shoppingPath.length > 0 && (
-          <Polyline
-            path={shoppingPath}
-            options={{
-              strokeColor: '#FFC107', // An accent color for the path
-              strokeOpacity: 0.8,
-              strokeWeight: 4,
-              icons: [
-                {
-                  icon: {
-                    path: 'M 0,-1 0,1',
-                    strokeOpacity: 1,
-                    scale: 3,
-                  },
-                  offset: '0',
-                  repeat: '20px',
-                },
-              ],
-            }}
-          />
+          <>
+            {/* Base path */}
+            <Polyline
+              path={shoppingPath}
+              options={{
+                strokeColor: '#757575', // A muted color for the base path
+                strokeOpacity: 0.6,
+                strokeWeight: 6,
+              }}
+            />
+            {/* Highlighted current segment */}
+            {highlightedSegment && (
+              <Polyline
+                path={highlightedSegment}
+                options={{
+                  strokeColor: '#4285F4', // A bright, primary color
+                  strokeOpacity: 0.9,
+                  strokeWeight: 8,
+                  zIndex: 1,
+                }}
+              />
+            )}
+            {/* Marker for the upcoming aisle */}
+            {markerPosition && (
+               <Marker position={markerPosition} />
+            )}
+          </>
         )}
       </GoogleMap>
     );
@@ -389,7 +391,7 @@ export default function MapPage() {
                       Scan
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] bg-background/60 dark:bg-background/50 backdrop-blur-md border-border/30 shadow-xl">
+                  <DialogContent className="sm:max-w-[425px] bg-background/90 backdrop-blur-sm border-border/30 shadow-xl">
                     <DialogHeader> <DialogTitle>Barcode Scanner</DialogTitle> <DialogDescription> Point camera at a barcode.</DialogDescription> </DialogHeader>
                     <div className="py-4">
                       <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
