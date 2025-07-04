@@ -44,7 +44,7 @@ const prompt = ai.definePrompt({
   input: {schema: CategorizeItemsInputSchema},
   output: {schema: CategorizeItemsOutputSchema},
   prompt: `You are a grocery shopping expert.
-1. Categorize the provided list of grocery items into supermarket aisles.
+1. Categorize the provided list of grocery items into supermarket aisles. The aisles must be of the following: Garden, Grocery, Clothing, Entertainment, Pet Care, Hardware and Bakery.
 2. Based on the provided items, suggest exactly 3 other related items that a user might have forgotten.
 3. Include these 3 suggested items directly within the categorized aisles list, alongside the user's original items. Place each suggested item in an appropriate aisle.
 4. For every item in the final list (both user's original items and your 3 suggested items), indicate if it's a suggestion by setting the 'isSuggestion' boolean flag. Set it to true for your suggestions, and false for items from the user's input.
@@ -56,22 +56,22 @@ Each element in the "categorizedAisles" array should be an object with:
     - "name" (string): The name of the grocery item.
     - "isSuggestion" (boolean): True if this item is one of your 3 suggestions, false if it was from the user's input.
 
-Example input: "apples, milk"
+Example input: "apples, screws"
 Example output:
 {
   "categorizedAisles": [
     {
-      "aisleName": "Produce",
+      "aisleName": "Grocery",
       "items": [
         { "name": "apples", "isSuggestion": false },
         { "name": "bananas", "isSuggestion": true }
       ]
     },
     {
-      "aisleName": "Dairy",
+      "aisleName": "Hardware",
       "items": [
-        { "name": "milk", "isSuggestion": false },
-        { "name": "yogurt", "isSuggestion": true }
+        { "name": "screws", "isSuggestion": false },
+        { "name": "hammer", "isSuggestion": true }
       ]
     },
     {
