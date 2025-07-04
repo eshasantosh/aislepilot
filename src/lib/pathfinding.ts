@@ -104,33 +104,33 @@ function getShortestPath(p1: PointName, p2: PointName): { path: PointName[]; dis
  * Finds the shortest possible route that visits each required point once,
  * starting and ending at 'J'.
  * @param requiredPoints An array of point names that must be visited.
- * @returns An object containing the full path as an array of point names, the total cost, and the coordinate path.
+ * @returns An object containing the full path, cost, coordinates, visit order, and path segments.
  */
 export function findOptimalPath(requiredPoints: PointName[]): {
   path: PointName[];
   cost: number;
-  pathCoords: { lat: number; lng: number }[];
+  pathCoords: google.maps.LatLngLiteral[];
+  visitOrder: PointName[];
+  pathSegmentsCoords: google.maps.LatLngLiteral[][];
 } {
     const startPoint: PointName = 'J';
 
-    // Ensure startPoint is not in the list of points to visit to avoid duplicates
     const pointsToVisit = requiredPoints.filter(p => p !== startPoint);
 
     if (pointsToVisit.length === 0) {
-        // If the only required point is J or no points, stay at J.
         const pointJ = points[startPoint];
         return {
             path: [startPoint],
             cost: 0,
             pathCoords: [pointJ.coords],
+            visitOrder: [startPoint],
+            pathSegmentsCoords: [],
         };
     }
 
     let minCost = Infinity;
     let bestPermutation: PointName[] = [];
 
-    // --- Brute-force permutation for TSP ---
-    // This is acceptable for a small number of aisles (n < 10)
     function generatePermutations(arr: PointName[]): PointName[][] {
         if (arr.length === 0) return [[]];
         const firstEl = arr[0];
@@ -153,17 +153,14 @@ export function findOptimalPath(requiredPoints: PointName[]): {
         let currentCost = 0;
         let lastPoint = startPoint;
 
-        // Cost from Start (J) to the first point in permutation
         currentCost += getShortestPath(lastPoint, permutation[0]).distance;
         lastPoint = permutation[0];
 
-        // Cost between points in the permutation
         for (let i = 0; i < permutation.length - 1; i++) {
             currentCost += getShortestPath(permutation[i], permutation[i + 1]).distance;
         }
         lastPoint = permutation[permutation.length - 1];
 
-        // Cost from the last point in permutation back to Start (J)
         currentCost += getShortestPath(lastPoint, startPoint).distance;
 
         if (currentCost < minCost) {
@@ -172,26 +169,28 @@ export function findOptimalPath(requiredPoints: PointName[]): {
         }
     });
 
-    // --- Reconstruct the full path from the best permutation ---
     const finalPath: PointName[] = [];
-    let lastPointInFullPath = startPoint;
+    const pathSegments: PointName[][] = [];
+    const visitOrder: PointName[] = [startPoint, ...bestPermutation, startPoint];
     
-    const fullVisitOrder = [startPoint, ...bestPermutation, startPoint];
-    
-    for (let i = 0; i < fullVisitOrder.length - 1; i++) {
-        const from = fullVisitOrder[i];
-        const to = fullVisitOrder[i+1];
-        const segment = getShortestPath(from, to);
-        // Add all points from the segment, but omit the first point if it's not the very start of the path
-        finalPath.push(...(i === 0 ? segment.path : segment.path.slice(1)));
+    for (let i = 0; i < visitOrder.length - 1; i++) {
+        const from = visitOrder[i];
+        const to = visitOrder[i+1];
+        const segmentData = getShortestPath(from, to);
+        const segmentPath = segmentData.path;
+        
+        pathSegments.push(segmentPath);
+        finalPath.push(...(i === 0 ? segmentPath : segmentPath.slice(1)));
     }
 
-
     const pathCoords = finalPath.map(p => points[p].coords);
+    const pathSegmentsCoords = pathSegments.map(segment => segment.map(p => points[p].coords));
 
     return {
         path: finalPath,
         cost: minCost,
         pathCoords,
+        visitOrder: visitOrder,
+        pathSegmentsCoords: pathSegmentsCoords,
     };
 }
