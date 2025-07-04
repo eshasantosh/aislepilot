@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Polyline, Marker, OverlayView } from '@react-google-maps/api';
 import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
@@ -301,6 +301,7 @@ export default function MapPage() {
     const highlightedSegment = pathSegments[currentSegmentIndex];
     const upcomingAislePointName = orderedAisles[currentSegmentIndex + 1];
     const markerPosition = upcomingAislePointName ? points[upcomingAislePointName].coords : null;
+    const upcomingAisleInfo = upcomingAislePointName ? points[upcomingAislePointName] : null;
 
 
     return (
@@ -336,6 +337,23 @@ export default function MapPage() {
             {/* Marker for the upcoming aisle */}
             {markerPosition && (
                <Marker position={markerPosition} />
+            )}
+            {/* Label for the upcoming aisle */}
+            {markerPosition && upcomingAisleInfo?.aisle && (
+              <OverlayView
+                position={markerPosition}
+                mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                getPixelPositionOffset={(width, height) => ({
+                  x: -(width / 2),
+                  y: -(height + 10), // Adjust this value to position the label correctly above the marker
+                })}
+              >
+                <div className="bg-background p-2 rounded-lg shadow-lg border border-border">
+                  <p className="font-semibold text-primary text-sm whitespace-nowrap">
+                    {upcomingAisleInfo.aisle}
+                  </p>
+                </div>
+              </OverlayView>
             )}
           </>
         )}
