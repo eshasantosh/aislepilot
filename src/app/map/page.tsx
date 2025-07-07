@@ -20,6 +20,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -30,7 +40,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { findOptimalPath } from '@/lib/pathfinding';
 import { aisleToPointName, points } from '@/lib/store-graph';
 import type { PointName } from '@/lib/store-graph';
-import { getItemPrice } from '@/lib/pricing';
+import { getItemPrice, availableItems, getItemAisle } from '@/lib/pricing';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const mapContainerStyle = {
@@ -83,8 +93,10 @@ export default function MapPage() {
   const [orderedAisles, setOrderedAisles] = useState<PointName[]>([]);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
 
-  // Checkout state
+  // Checkout and Scan state
   const [checkoutCode, setCheckoutCode] = useState<string>('');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannedItem, setScannedItem] = useState<{ name: string; quantity: number } | null>(null);
 
   const { toast } = useToast();
 
@@ -247,6 +259,75 @@ export default function MapPage() {
     }
   };
 
+  const handleScannerOpenChange = (open: boolean) => {
+    setIsScannerOpen(open);
+    if (open) {
+      requestCameraPermission();
+    } else if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setHasCameraPermission(null);
+    }
+  };
+
+  const handleSimulateScan = () => {
+    const randomIndex = Math.floor(Math.random() * availableItems.length);
+    const randomItemName = availableItems[randomIndex];
+    setScannedItem({ name: randomItemName, quantity: 1 });
+    setIsScannerOpen(false); // Close scanner dialog
+  };
+
+  const handleScannedQuantityChange = (change: number) => {
+    setScannedItem(prev => {
+        if (!prev) return null;
+        return { ...prev, quantity: Math.max(1, prev.quantity + change) };
+    });
+  };
+
+  const handleConfirmScannedItem = () => {
+    if (!scannedItem) return;
+    const { name, quantity } = scannedItem;
+
+    setDisplayListForMap(prevList => {
+      if (!prevList) return { categorizedAisles: [] };
+
+      const aisleName = getItemAisle(name);
+      const newItem = { name, isSuggestion: false };
+
+      const aisleIndex = prevList.categorizedAisles.findIndex(a => a.aisleName.toLowerCase() === aisleName.toLowerCase());
+
+      let newAisles = [...prevList.categorizedAisles];
+
+      if (aisleIndex > -1) {
+          const targetAisle = newAisles[aisleIndex];
+          const itemExists = targetAisle.items.some(item => item.name === newItem.name);
+          if (!itemExists) {
+              newAisles = newAisles.map((aisle, index) => 
+                  index === aisleIndex 
+                  ? { ...aisle, items: [...aisle.items, newItem] } 
+                  : aisle
+              );
+          }
+      } else {
+          newAisles = [...newAisles, { aisleName: aisleName, items: [newItem] }];
+      }
+
+      return { categorizedAisles: newAisles };
+    });
+
+    setCheckedItems(prev => ({ ...prev, [name]: true }));
+    setItemQuantities(prev => ({ ...prev, [name]: quantity }));
+    
+    toast({
+      title: "Item Added to Cart",
+      description: `${quantity}x "${name}" has been added to your cart.`,
+    });
+
+    setScannedItem(null);
+  };
+
+
   const handleItemInteractionOnMap = useCallback((itemName: string, _aisleName: string, _isInitialSuggestion: boolean) => {
     // On map page, all interactions are checkbox toggles
     setCheckedItems((prevChecked) => {
@@ -276,14 +357,17 @@ export default function MapPage() {
   const getCompletedItemsForCart = () => {
     if (!displayListForMap || !displayListForMap.categorizedAisles) return [];
     const completed: string[] = [];
+    // Use a Set to avoid duplicates if an item (like a scanned one) exists in multiple aisle arrays
+    const itemNames = new Set<string>();
+
     displayListForMap.categorizedAisles.forEach(aisle => {
-      aisle.items.forEach(item => { // item is {name, isSuggestion}
+      aisle.items.forEach(item => {
         if (checkedItems[item.name]) {
-          completed.push(item.name);
+          itemNames.add(item.name);
         }
       });
     });
-    return completed.sort();
+    return Array.from(itemNames).sort();
   };
 
   const completedItemsInCart = getCompletedItemsForCart();
@@ -367,7 +451,7 @@ export default function MapPage() {
                 })}
               >
                 <div className="bg-background p-2 rounded-lg shadow-lg border border-border w-28 text-center">
-                  <p className="font-semibold text-primary text-sm">
+                  <p className="font-semibold text-primary text-sm break-words">
                     {upcomingAisleInfo.aisle}
                   </p>
                 </div>
@@ -409,7 +493,7 @@ export default function MapPage() {
         <div className="flex-grow"></div>
 
         <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6 pb-4">
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-card/95 backdrop-blur-sm border-border/30">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
                 <div className="flex items-center">
@@ -421,7 +505,7 @@ export default function MapPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
+                  <Dialog open={isScannerOpen} onOpenChange={handleScannerOpenChange}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
                         <ScanLine className="mr-2 h-4 w-4" />
@@ -434,6 +518,11 @@ export default function MapPage() {
                         <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
                         {hasCameraPermission === false && <Alert variant="destructive" className="mt-4"><AlertTitle>Camera Access Denied</AlertTitle><AlertDescription>Enable camera permissions.</AlertDescription></Alert>}
                         {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera...</p>}
+                      </div>
+                      <div className="mt-4 flex justify-center">
+                        <Button onClick={handleSimulateScan}>
+                            <QrCode className="mr-2 h-4 w-4" /> Simulate Scan
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -531,6 +620,28 @@ export default function MapPage() {
             </CardContent>
           </Card>
         </div>
+
+        {scannedItem && (
+          <AlertDialog open={!!scannedItem} onOpenChange={() => setScannedItem(null)}>
+              <AlertDialogContent>
+                  <AlertDialogHeader>
+                      <AlertDialogTitle>Add "{scannedItem.name}" to Cart?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                          This item was detected by the scanner. Adjust the quantity and add it to your cart.
+                      </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="flex items-center justify-center gap-4 py-4">
+                       <Button variant="outline" size="icon" onClick={() => handleScannedQuantityChange(-1)} disabled={scannedItem.quantity <= 1} aria-label={`Decrease ${scannedItem.name}`}> <Minus className="h-4 w-4" /> </Button>
+                       <span className="text-xl font-bold w-12 text-center">{scannedItem.quantity}</span>
+                       <Button variant="outline" size="icon" onClick={() => handleScannedQuantityChange(1)} aria-label={`Increase ${scannedItem.name}`}> <Plus className="h-4 w-4" /> </Button>
+                  </div>
+                  <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setScannedItem(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleConfirmScannedItem}>Add to Cart</AlertDialogAction>
+                  </AlertDialogFooter>
+              </AlertDialogContent>
+          </AlertDialog>
+        )}
     </main>
   );
 }
