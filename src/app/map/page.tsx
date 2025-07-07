@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { CategorizedDisplay } from '@/components/categorized-display';
 import type { CategorizeItemsOutput } from '@/ai/flows/categorize-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Loader2, ScanLine, Plus, Minus } from 'lucide-react';
+import { ArrowLeft, Loader2, ScanLine, Plus, Minus, QrCode } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import {
@@ -30,6 +31,7 @@ import { findOptimalPath } from '@/lib/pathfinding';
 import { aisleToPointName, points } from '@/lib/store-graph';
 import type { PointName } from '@/lib/store-graph';
 import { getItemPrice } from '@/lib/pricing';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const mapContainerStyle = {
   width: '100%',
@@ -80,6 +82,9 @@ export default function MapPage() {
   const [pathSegments, setPathSegments] = useState<google.maps.LatLngLiteral[][]>([]);
   const [orderedAisles, setOrderedAisles] = useState<PointName[]>([]);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
+
+  // Checkout state
+  const [checkoutCode, setCheckoutCode] = useState<string>('');
 
   const { toast } = useToast();
 
@@ -290,6 +295,14 @@ export default function MapPage() {
       return total + (quantity * price);
     }, 0);
   };
+  
+  const handleCheckoutOpen = (open: boolean) => {
+    if (open) {
+      // Generate a random 12-digit code for the barcode
+      const randomCode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+      setCheckoutCode(randomCode);
+    }
+  };
 
   const backButtonElement = (
     <Link href="/plan" passHref>
@@ -353,8 +366,8 @@ export default function MapPage() {
                   y: -(height + 10), // Adjust this value to position the label correctly above the marker
                 })}
               >
-                <div className="bg-background p-2 rounded-lg shadow-lg border border-border w-28">
-                  <p className="font-semibold text-primary text-sm text-center">
+                <div className="bg-background p-2 rounded-lg shadow-lg border border-border w-28 text-center">
+                  <p className="font-semibold text-primary text-sm">
                     {upcomingAisleInfo.aisle}
                   </p>
                 </div>
@@ -407,22 +420,79 @@ export default function MapPage() {
                     </p>
                   </div>
                 </div>
-                <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
-                      <ScanLine className="mr-2 h-4 w-4" />
-                      Scan
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] bg-background/90 backdrop-blur-sm border-border/30 shadow-xl">
-                    <DialogHeader> <DialogTitle>Barcode Scanner</DialogTitle> <DialogDescription> Point camera at a barcode.</DialogDescription> </DialogHeader>
-                    <div className="py-4">
-                      <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
-                      {hasCameraPermission === false && <Alert variant="destructive" className="mt-4"><AlertTitle>Camera Access Denied</AlertTitle><AlertDescription>Enable camera permissions.</AlertDescription></Alert>}
-                      {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera...</p>}
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <div className="flex items-center gap-2">
+                  <Dialog onOpenChange={(open) => { if (open) requestCameraPermission(); else if (videoRef.current && videoRef.current.srcObject) { const stream = videoRef.current.srcObject as MediaStream; stream.getTracks().forEach(track => track.stop()); videoRef.current.srcObject = null; setHasCameraPermission(null); } }}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow">
+                        <ScanLine className="mr-2 h-4 w-4" />
+                        Scan
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] bg-background/90 backdrop-blur-sm border-border/30 shadow-xl">
+                      <DialogHeader> <DialogTitle>Barcode Scanner</DialogTitle> <DialogDescription> Point camera at a barcode.</DialogDescription> </DialogHeader>
+                      <div className="py-4">
+                        <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
+                        {hasCameraPermission === false && <Alert variant="destructive" className="mt-4"><AlertTitle>Camera Access Denied</AlertTitle><AlertDescription>Enable camera permissions.</AlertDescription></Alert>}
+                        {hasCameraPermission === null && <p className="text-muted-foreground text-sm text-center mt-2">Requesting camera...</p>}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog onOpenChange={handleCheckoutOpen}>
+                    <DialogTrigger asChild>
+                       <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow bg-accent text-accent-foreground hover:bg-accent/90">
+                         <QrCode className="mr-2 h-4 w-4" />
+                         Checkout
+                       </Button>
+                     </DialogTrigger>
+                     <DialogContent className="sm:max-w-md bg-card border-border shadow-xl">
+                       <DialogHeader>
+                         <DialogTitle>Self-Checkout</DialogTitle>
+                         <DialogDescription>
+                           Scan this barcode at any self-checkout counter to proceed with payment.
+                         </DialogDescription>
+                       </DialogHeader>
+                       <div className="py-4 space-y-4">
+                         {checkoutCode && (
+                           <div className="w-full flex justify-center p-4 bg-white rounded-md">
+                             <img
+                               src={`https://barcode.tec-it.com/barcode.ashx?data=${checkoutCode}&code=Code128&translate-esc=on`}
+                               alt="Checkout Barcode"
+                               className="w-full max-w-xs"
+                             />
+                           </div>
+                         )}
+                         <Separator />
+                         <div className="space-y-2">
+                           <h3 className="text-lg font-medium text-card-foreground">Your Items</h3>
+                           <ScrollArea className="h-40 w-full pr-4">
+                             <ul className="space-y-2">
+                               {completedItemsInCart.map(itemName => {
+                                   const quantity = itemQuantities[itemName] || 1;
+                                   const price = getItemPrice(itemName);
+                                   const subtotal = quantity * price;
+                                   return (
+                                       <li key={itemName} className="flex justify-between items-center text-sm">
+                                           <span className="font-medium">{itemName} (x{quantity})</span>
+                                           <span className="text-muted-foreground">Rs {subtotal.toFixed(2)}</span>
+                                       </li>
+                                   );
+                               })}
+                               {completedItemsInCart.length === 0 && (
+                                <li className="text-sm text-muted-foreground italic">Your cart is empty.</li>
+                               )}
+                             </ul>
+                           </ScrollArea>
+                         </div>
+                         <Separator />
+                         <div className="flex justify-between items-center text-xl font-bold">
+                           <span className="text-primary">Total</span>
+                           <span className="text-primary">Rs {calculateTotalPrice().toFixed(2)}</span>
+                         </div>
+                       </div>
+                     </DialogContent>
+                  </Dialog>
+                </div>
               </div>
               <Separator className="my-2" />
               <Accordion type="single" collapsible className="w-full" defaultValue="cart-items">
