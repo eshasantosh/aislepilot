@@ -6,7 +6,7 @@ import { AppHeader } from '@/components/app-header';
 import { GroceryForm } from '@/components/grocery-form';
 import { useToast } from "@/hooks/use-toast";
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-import { Separator } from '@/components/ui/separator';
+import { Card } from '@/components/ui/card';
 
 export default function Home() {
   const [itemsInput, setItemsInput] = useState<string>('');
@@ -43,19 +43,20 @@ export default function Home() {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-primary">
       <AppHeader />
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
-        <div className="max-w-2xl mx-auto">
-          <GroceryForm
-            onSubmitItems={handleFormSubmit}
-            onClearList={handleClearList}
-            isLoading={false}
-            initialItems={itemsInput}
-          />
+      <main className="flex-grow flex items-center">
+        <div className="container mx-auto px-4 md:px-6">
+          <Card className="max-w-2xl mx-auto p-6 sm:p-8 shadow-xl">
+            <GroceryForm
+              onSubmitItems={handleFormSubmit}
+              onClearList={handleClearList}
+              isLoading={false}
+              initialItems={itemsInput}
+            />
+          </Card>
         </div>
-        
       </main>
-    </>
+    </div>
   );
 }
