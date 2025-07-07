@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -18,13 +17,8 @@ export default function PlanPage() {
   const [itemQuantities, setItemQuantities] = useState<Record<string, number>>({});
   const [userAddedSuggestions, setUserAddedSuggestions] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
 
   const performCategorization = useCallback(async (itemsToCategorize: string) => {
     setIsLoading(true);
@@ -220,57 +214,46 @@ export default function PlanPage() {
 
   if (isLoading && !categorizedListWithSuggestions) { 
     return (
-      <>
-        <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
-          <div className="my-6 self-start">
+      <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
+        <div className="my-6 self-start">
              {/* This is removed as backButton is now part of CategorizedDisplay header */}
-          </div>
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
-          <p className="text-muted-foreground">Organizing your grocery aisles & finding suggestions...</p>
-        </main>
-        <footer className="py-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
-        </footer>
-      </>
+        </div>
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
+        <p className="text-muted-foreground">Organizing your grocery aisles & finding suggestions...</p>
+      </main>
     );
   }
 
   const hasActualContent = categorizedListWithSuggestions && categorizedListWithSuggestions.categorizedAisles.length > 0;
 
   return (
-    <>
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
-        <CategorizedDisplay
-          categorizedList={categorizedListWithSuggestions}
-          checkedItems={checkedItems}
-          onItemInteraction={handleItemInteraction}
-          userAddedSuggestions={userAddedSuggestions}
-          displayMode="grid"
-          backButton={backButtonElement}
-        />
+    <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
+      <CategorizedDisplay
+        categorizedList={categorizedListWithSuggestions}
+        checkedItems={checkedItems}
+        onItemInteraction={handleItemInteraction}
+        userAddedSuggestions={userAddedSuggestions}
+        displayMode="grid"
+        backButton={backButtonElement}
+      />
 
-        {!isLoading && hasActualContent && (
-          <div className="mt-8 text-center">
-            <Link href="/map" passHref>
-            <Button variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-                <MapPin className="mr-2 h-5 w-5" />
-                View Store Map & Checklist
-            </Button>
-            </Link>
+      {!isLoading && hasActualContent && (
+        <div className="mt-8 text-center">
+          <Link href="/map" passHref>
+          <Button variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+              <MapPin className="mr-2 h-5 w-5" />
+              View Store Map & Checklist
+          </Button>
+          </Link>
+        </div>
+      )}
+        
+        {!isLoading && !hasActualContent && (
+          <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+            <p>No items were categorized, or no suggestions found. Please check your input or try again.</p>
           </div>
         )}
-         
-         {!isLoading && !hasActualContent && (
-           <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
-             <p>No items were categorized, or no suggestions found. Please check your input or try again.</p>
-           </div>
-         )}
 
-      </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || new Date().getFullYear()} AislePilot. Happy Shopping!</p>
-      </footer>
-    </>
+    </main>
   );
 }
-

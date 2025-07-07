@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -74,7 +73,6 @@ export default function MapPage() {
   const [itemQuantities, setItemQuantities] = useState<Record<string, number>>({});
   const [userAddedSuggestions, setUserAddedSuggestions] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [_currentYear, setCurrentYear] = useState<number | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -91,7 +89,6 @@ export default function MapPage() {
   });
 
   useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
     let categorizedListFromAI: CategorizeItemsOutput | null = null;
     let checksFromStorage: Record<string, boolean> = {};
     let quantitiesFromStorage: Record<string, number> = {};
@@ -151,7 +148,11 @@ export default function MapPage() {
         // Sort the display list based on the optimal path
         const shoppingOrder = visitOrder.map(pointName => points[pointName].aisle).filter(Boolean);
         const sortedAisles = [...processedListForMap.categorizedAisles].sort((a, b) => {
-          return shoppingOrder.indexOf(a.aisleName) - shoppingOrder.indexOf(b.aisleName);
+          const aIndex = shoppingOrder.indexOf(a.aisleName);
+          const bIndex = shoppingOrder.indexOf(b.aisleName);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
         });
         setDisplayListForMap({ categorizedAisles: sortedAisles });
 
@@ -171,37 +172,41 @@ export default function MapPage() {
 
   // Effect to update the current path segment based on checked items
   useEffect(() => {
-    if (!orderedAisles.length || !displayListForMap) return;
+    if (!orderedAisles.length || !displayListForMap?.categorizedAisles.length) return;
 
-    // Get the sequence of aisles we need to shop at (excluding start/end points)
-    const shoppingAisles = orderedAisles
-      .slice(1, -1) // Remove J (start) and J (end)
-      .map(pointName => points[pointName].aisle?.toLowerCase());
+    // The points to visit, excluding start/end. e.g., ['A', 'C']
+    const pointsToVisit = orderedAisles.slice(1, -1); 
 
-    let nextIncompleteAisleIdx = -1;
+    let nextIncompletePointIndex = -1;
 
-    for (let i = 0; i < shoppingAisles.length; i++) {
-      const aisleNameLower = shoppingAisles[i];
-      const aisleData = displayListForMap.categorizedAisles.find(a => a.aisleName.toLowerCase() === aisleNameLower);
+    for (let i = 0; i < pointsToVisit.length; i++) {
+      const pointName = pointsToVisit[i];
       
-      if (!aisleData) continue;
+      // Find all aisles in our list that map to this physical point
+      const aislesForThisPoint = displayListForMap.categorizedAisles.filter(
+        aisle => aisleToPointName[aisle.aisleName.toLowerCase()] === pointName
+      );
 
-      const allItemsInAisleChecked = aisleData.items.every(item => checkedItems[item.name]);
+      // Check if all items across all those aisles are checked
+      const allItemsForPointChecked = aislesForThisPoint.every(aisle => 
+        aisle.items.every(item => checkedItems[item.name])
+      );
 
-      if (!allItemsInAisleChecked) {
-        nextIncompleteAisleIdx = i;
+      if (!allItemsForPointChecked) {
+        nextIncompletePointIndex = i;
         break;
       }
     }
     
-    if (nextIncompleteAisleIdx === -1) {
+    if (nextIncompletePointIndex === -1 && pointsToVisit.length > 0) {
       // All items are checked, highlight the last segment (path to checkout)
       setCurrentSegmentIndex(pathSegments.length - 1);
-    } else {
-      setCurrentSegmentIndex(nextIncompleteAisleIdx);
+    } else if (nextIncompletePointIndex !== -1) {
+      // Highlight the segment leading to the next incomplete point
+      setCurrentSegmentIndex(nextIncompletePointIndex);
     }
 
-  }, [checkedItems, orderedAisles, displayListForMap, pathSegments.length]);
+  }, [checkedItems, orderedAisles, displayListForMap, pathSegments]);
 
 
   // Persist checkedItems and itemQuantities (userAddedSuggestions is persisted on plan page)
@@ -348,8 +353,8 @@ export default function MapPage() {
                   y: -(height + 10), // Adjust this value to position the label correctly above the marker
                 })}
               >
-                <div className="bg-background p-2 rounded-lg shadow-lg border border-border">
-                  <p className="font-semibold text-primary text-sm whitespace-nowrap">
+                <div className="bg-background p-2 rounded-lg shadow-lg border border-border w-28">
+                  <p className="font-semibold text-primary text-sm text-center">
                     {upcomingAisleInfo.aisle}
                   </p>
                 </div>
@@ -390,7 +395,7 @@ export default function MapPage() {
         
         <div className="flex-grow"></div>
 
-        <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6">
+        <div className="sticky bottom-0 z-30 pt-4 px-4 md:px-6 pb-4">
           <Card className="shadow-lg">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row justify-between items-center gap-2">
@@ -454,7 +459,6 @@ export default function MapPage() {
               </Accordion>
             </CardContent>
           </Card>
-          <p className="text-xs text-muted-foreground mt-2 text-center pb-2">Map data © Google. Route for demonstration.</p>
         </div>
     </main>
   );
