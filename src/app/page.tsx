@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -11,16 +10,12 @@ import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const [itemsInput, setItemsInput] = useState<string>('');
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-
     const savedItemsInput = localStorage.getItem(LOCAL_STORAGE_KEYS.ITEMS_INPUT);
     if (savedItemsInput) setItemsInput(savedItemsInput);
-
   }, []);
 
   useEffect(() => {
@@ -61,9 +56,6 @@ export default function Home() {
         </div>
         
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {currentYear || ''} AislePilot. Happy Shopping!</p>
-      </footer>
     </>
   );
 }
