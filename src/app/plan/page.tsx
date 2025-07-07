@@ -214,12 +214,12 @@ export default function PlanPage() {
 
   if (isLoading && !categorizedListWithSuggestions) { 
     return (
-      <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center">
+      <main className="flex-grow container mx-auto px-4 md:px-6 py-8 flex flex-col items-center justify-center bg-primary">
         <div className="my-6 self-start">
              {/* This is removed as backButton is now part of CategorizedDisplay header */}
         </div>
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4 mt-8" />
-        <p className="text-muted-foreground">Organizing your grocery aisles & finding suggestions...</p>
+        <Loader2 className="h-12 w-12 animate-spin text-primary-foreground mb-4 mt-8" />
+        <p className="text-primary-foreground">Organizing your grocery aisles & finding suggestions...</p>
       </main>
     );
   }
@@ -227,7 +227,7 @@ export default function PlanPage() {
   const hasActualContent = categorizedListWithSuggestions && categorizedListWithSuggestions.categorizedAisles.length > 0;
 
   return (
-    <main className="flex-grow container mx-auto px-4 md:px-6 py-8">
+    <main className="flex-grow container mx-auto px-4 md:px-6 py-8 bg-primary">
       <CategorizedDisplay
         categorizedList={categorizedListWithSuggestions}
         checkedItems={checkedItems}
@@ -249,7 +249,7 @@ export default function PlanPage() {
       )}
         
         {!isLoading && !hasActualContent && (
-          <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+          <div className="flex flex-col items-center justify-center text-center text-primary-foreground p-8 border border-primary-foreground border-dashed rounded-lg">
             <p>No items were categorized, or no suggestions found. Please check your input or try again.</p>
           </div>
         )}

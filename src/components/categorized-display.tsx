@@ -40,7 +40,7 @@ export function CategorizedDisplay({
                 {backButton}
               </div>
             )}
-            <h2 className="text-2xl font-semibold font-headline text-primary">
+            <h2 className="text-2xl font-semibold font-headline text-primary-foreground">
               AislePilot
             </h2>
         </div>
@@ -65,7 +65,7 @@ export function CategorizedDisplay({
             {backButton}
           </div>
         )}
-        <h2 className="text-2xl font-semibold font-headline text-primary">
+        <h2 className="text-2xl font-semibold font-headline text-primary-foreground">
           AislePilot
         </h2>
       </div>
