@@ -29,8 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { findOptimalPath } from '@/lib/pathfinding';
 import { aisleToPointName, points } from '@/lib/store-graph';
 import type { PointName } from '@/lib/store-graph';
-
-const ITEM_PRICE_RS = 10;
+import { getItemPrice } from '@/lib/pricing';
 
 const mapContainerStyle = {
   width: '100%',
@@ -287,7 +286,8 @@ export default function MapPage() {
   const calculateTotalPrice = () => {
     return completedItemsInCart.reduce((total, itemName) => {
       const quantity = itemQuantities[itemName] || 0; 
-      return total + (quantity * ITEM_PRICE_RS);
+      const price = getItemPrice(itemName);
+      return total + (quantity * price);
     }, 0);
   };
 
@@ -434,7 +434,8 @@ export default function MapPage() {
                         <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
                           {completedItemsInCart.map(itemName => {
                             const quantity = itemQuantities[itemName] || 1;
-                            const subtotal = quantity * ITEM_PRICE_RS;
+                            const price = getItemPrice(itemName);
+                            const subtotal = quantity * price;
                             return (
                               <li key={itemName} className="text-base p-3 bg-muted/60 rounded-md shadow-sm border border-input flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                 <span className="font-medium flex-grow mb-2 sm:mb-0">{itemName}</span>
