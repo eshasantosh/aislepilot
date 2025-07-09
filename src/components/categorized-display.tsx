@@ -13,6 +13,29 @@ import {
 import { cn } from "@/lib/utils";
 import type { ReactNode } from 'react';
 
+import {
+  TreeDeciduous,
+  Wrench,
+  Theater,
+  ShoppingCart,
+  CakeSlice,
+  Dog,
+  Shirt
+} from 'lucide-react';
+
+const aisleIcons: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+  "Garden": TreeDeciduous,
+  "Hardware": Wrench,
+  "Entertainment": Theater,
+  "Clothing": Shirt,
+  "Pet Care": Dog,
+  "Grocery": ShoppingCart,
+  "Bakery": CakeSlice,
+};
+
+
+
+
 interface CategorizedDisplayProps {
   categorizedList: CategorizeItemsOutput | null; // Contains items with {name, isSuggestion}
   checkedItems: Record<string, boolean>;
@@ -84,6 +107,7 @@ export function CategorizedDisplay({
                 <div className="p-1">
                   <AisleCard
                     aisleName={aisleName}
+                    icon = {aisleIcons[aisleName]}
                     itemsInAisle={items} // items are {name, isSuggestion}
                     checkedItems={checkedItems}
                     userAddedSuggestions={userAddedSuggestions}
@@ -106,6 +130,7 @@ export function CategorizedDisplay({
             <AisleCard
               key={`${aisleName}-${index}-grid`}
               aisleName={aisleName}
+              icon = {aisleIcons[aisleName]}
               itemsInAisle={items} // items are {name, isSuggestion}
               checkedItems={checkedItems}
               userAddedSuggestions={userAddedSuggestions}
