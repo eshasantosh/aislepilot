@@ -26,10 +26,11 @@ interface AisleCardProps {
   checkedItems: Record<string, boolean>;
   userAddedSuggestions: Set<string>;
   onItemInteraction: (itemName: string, aisleName: string, isInitialSuggestion: boolean) => void;
+  icon?: LucideIcon; //added for icon
 }
 
-export function AisleCard({ aisleName, itemsInAisle, checkedItems, userAddedSuggestions, onItemInteraction }: AisleCardProps) {
-  const Icon: LucideIcon = getAisleIcon(aisleName);
+export function AisleCard({ aisleName, itemsInAisle, checkedItems, userAddedSuggestions, onItemInteraction, icon }: AisleCardProps) {
+  const Icon: LucideIcon = icon ?? getAisleIcon(aisleName);
 
   const sortedItems = [...itemsInAisle].sort((a, b) => {
     const aIsEffectivelyUserItem = !a.isSuggestion || userAddedSuggestions.has(a.name);
