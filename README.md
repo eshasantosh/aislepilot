@@ -12,6 +12,8 @@ AislePilot is a smart grocery shopping assistant that helps you plan your shoppi
 - **Simulated Barcode Scanning**: Quickly add items to your cart with a barcode scanner simulation.
 - **Self-Checkout Simulation**: Generate a barcode to complete your purchase at a self-checkout counter.
 
+![AislePilot mockups](docs/mockups.png)
+
 ## Tech Stack
 
 - **Next.js**: React framework for building the user interface.
