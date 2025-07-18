@@ -16,6 +16,17 @@ jobs:
     name: Build and Deploy
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
