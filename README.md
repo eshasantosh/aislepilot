@@ -2,6 +2,9 @@
 
 AislePilot is a smart grocery shopping assistant that helps you plan your shopping trip efficiently. It takes your grocery list, categorizes items into aisles, suggests things you might have forgotten, and generates an optimal in-store route on a map to save you time.
 
+Deck: [Figma](https://www.figma.com/deck/RDyfPYXyrud6ismowOnVWC)
+Video: [LinkedIn Post](https://www.linkedin.com/posts/eshasantosh_walmartsparkathon-retailtech-machinelearning-activity-7366060634326650880-k-hh?utm_source=share&utm_medium=member_desktop&rcm=ACoAAD4TjVQB_WKx8PCiLtkFtI7rco3Hk4-tdto)
+
 ## Features
 
 - **AI-Powered List Categorization**: Automatically sorts your grocery items into supermarket aisles.
